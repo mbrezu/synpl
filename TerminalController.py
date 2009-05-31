@@ -2,8 +2,11 @@ import sys, re
 
 # This code is from
 # http://code.activestate.com/recipes/475116/
+# According to http://code.activestate.com/help/terms/ ,
+# this code is under the MIT license, full license text at
+# http://www.opensource.org/licenses/mit-license.php
 #
-# I'm only using it to test the TextWithChanges class
+# I'm only using it to test the TextWithChanges class.
 
 class TerminalController:
     """

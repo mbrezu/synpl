@@ -1,6 +1,10 @@
+
 This is supposed to become a structured LISP editor plugin for
 Gedit. If it is reasonably successful, I will try to add support for
 other languages and port it to other editors.
+
+The code is licensed under GPLv2. The full text of the license is
+found in the file COPYING.
 
 For more information, please visit: http://synpl.blogspot.com/
 I'm keeping a log of progress and information there.
@@ -9,12 +13,12 @@ Goals:
 
 - make it as easy to use as org-mode for Emacs, but for programming
   languages (imagine being able to move statements/arguments/elements
-  of a list just like headers/list items in org-mode)
+  of a list just like headers/list items in org-mode);
 
-- do incremental parsing in the form of 'parsing of increments'
+- do incremental parsing in the form of 'parsing of increments';
 
 - better error reporting for parsing errors, make simple refactorings
   possible even when the source is broken (use the fact we knew the
-  structure of the file at the last successful parse)
+  structure of the file at the last successful parse).
 
 Enough talk. :-)
