@@ -154,6 +154,10 @@ class TextWithChanges(object):
         self.changes = changesBefore + changesAfter
         self.text = self.text[:oldStart] + self.text[oldEnd+1:]
 
+    def getActualLength(self):
+        deletes = [change for change in self.changes if change.deleted]
+        return len(self.text) - len(deletes)
+
     def insertSliceWithChanges(self, position, sliceWithChanges):
         oldPosition = self.convertActualPositionToOld(position)
         changesBefore = [change for change in self.changes if change.position < oldPosition]
@@ -326,32 +330,31 @@ class TestTextWithChanges(unittest.TestCase):
         self.assertEqual(self.text.testRender(), "_A_n_a_ AbAcDaDr_e_ _m_e_rDe_.")
 
 if __name__ == "__main__":
-    unittest.main()
-
-# term = TerminalController()
-# text = TextWithChanges()
-# text.insertChar('a', 0)
-# text.insertChar('b', 1)
-# text.insertChar('a', 2)
-# text.insertChar('c', 3)
-# text.colorRender(term)
-# text.validateSlice(1, 2)
-# text.colorRender(term)
-# text.deleteChar(1)
-# text.colorRender(term)
-# print text.changes
-# print text.getCurrentSlice(0, 2)
-# print text.getOldSlice(0, 2)
-# sliceC = text.getSliceWithChanges(1, 2)
-# print ">>> slice ",
-# sliceC.colorRender(term)
-# text.colorRender(term)
-# slice2 = text.getSliceWithChanges(1, 1)
-# text.removeSliceWithChanges(1, 1)
-# text.colorRender(term)
-# slice2.colorRender(term)
-# text.insertSliceWithChanges(1, slice2)
-# text.colorRender(term)
-# text.validateSlice(0, 2)
-# text.colorRender(term)
-# print text.testRender()
+#    unittest.main()
+    term = TerminalController()
+    text = TextWithChanges()
+    text.insertChar('a', 0)
+    text.insertChar('b', 1)
+    text.insertChar('a', 2)
+    text.insertChar('c', 3)
+    text.colorRender(term)
+    text.validateSlice(1, 2)
+    text.colorRender(term)
+    text.deleteChar(1)
+    text.colorRender(term)
+    print text.changes
+    print text.getCurrentSlice(0, 2)
+    print text.getOldSlice(0, 2)
+    sliceC = text.getSliceWithChanges(1, 2)
+    print ">>> slice ",
+    sliceC.colorRender(term)
+    text.colorRender(term)
+    slice2 = text.getSliceWithChanges(1, 1)
+    text.removeSliceWithChanges(1, 1)
+    text.colorRender(term)
+    slice2.colorRender(term)
+    text.insertSliceWithChanges(1, slice2)
+    text.colorRender(term)
+    text.validateSlice(0, 2)
+    text.colorRender(term)
+    print text.testRender()
