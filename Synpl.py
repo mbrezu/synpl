@@ -23,6 +23,7 @@
 
 from pprint import pprint
 from TextWithChanges import TextWithChanges
+from TerminalController import TerminalController
 
 currentId = 0
 def getNextId():
@@ -149,6 +150,7 @@ class ParseTree(object):
         i = index + 1
         while i < len(self.parent.subTrees):
             self.parent.subTrees[i].offsetBy(offset)
+            i += 1
         self.parent.endPosition += offset
         self.parent.offsetSuccessorsBy(offset)
 
@@ -184,9 +186,9 @@ class ParseTree(object):
             return None
 
 #         print ">>>"
-        print removePositions(self.reprAsCode())
-        print removePositions(previous.reprAsCode())
-        print removePositions(self.getRoot().reprAsCode())
+#         print removePositions(self.reprAsCode())
+#         print removePositions(previous.reprAsCode())
+#         print removePositions(self.getRoot().reprAsCode())
         thisTwcSlice = self.text.getSliceWithChanges(self.startPosition,
                                                      self.endPosition)
         self.text.removeSliceWithChanges(self.startPosition,
@@ -229,7 +231,7 @@ class ParseTree(object):
                 self.startPosition + previousTwcSlice.getActualLength() - 1)
             self.text.insertSliceWithChanges(previous.startPosition, previousTwcSlice)
             self.text.insertSliceWithChanges(self.startPosition, thisTwcSlice)
-            return self.getRoot()
+            return None
 
     def moveDown(self):
         next = self.getNextSibling()
@@ -306,22 +308,19 @@ class ParseTree(object):
         self.text.insertChar(char, position)
         self.endPosition += 1
         self.offsetSuccessorsBy(1)
-        def reparse(node, level):
-            if level == 0:
-                return node.getRoot()
+        def reparse(node):
+            reparsedNode = node._tryReparse(useOldVersion = False)
+            if reparsedNode != None:
+                reparsedNode._adjustCoordinates(node)
+                reparsedNode.text.validateSlice(reparsedNode.startPosition,
+                                                reparsedNode.endPosition)
+                return reparsedNode.getRoot()
             else:
-                reparsedNode = node._tryReparse(useOldVersion = True)
-                if reparsedNode != None:
-                    reparsedNode._adjustCoordinates(node)
-                    reparsedNode.text.validateSlice(reparsedNode.startPosition,
-                                                    reparsedNode.endPosition)
-                    return reparsedNode.getRoot()
+                if node.parent != None:
+                    return reparse(node.parent)
                 else:
-                    if node.parent != None:
-                        return reparse(node.parent, level - 1)
-                    else:
-                        return node.getRoot()
-        return reparse(self, 2)
+                    return node.getRoot()
+        return reparse(self)
 
     def charDeletedAt(self, position, char):
         raise NotImplementedError()
@@ -446,7 +445,7 @@ def removePositions(code):
 def test(sample):
     text = TextWithChanges()
     text.text = sample
-    tokens = tokenizerSexp(text.getOldSlice(0, 1000))
+    tokens = tokenizerSexp(text.getOldSlice(0, text.getActualLength() - 1))
     lastAtomPosition = 0
     for token in tokens:
         if token.kind == "ATOM":
@@ -481,17 +480,6 @@ def test(sample):
     newTree = qList.moveDown()
     print removePositions(newTree.reprAsCode())
 
-def testExtraChars():
-    l = []
-    l.append(ExtraChar('a', 12))
-    l.append(ExtraChar('b', 3))
-    l.append(ExtraChar('c', 45))
-    l.append(ExtraChar('d', 20))
-    l.append(ExtraChar('e', 10))
-    print l
-    l.sort()
-    print l
-
 def dumpTree(prompt, tree):
     print "*" * 50
 #    print prompt, tree
@@ -500,36 +488,46 @@ def dumpTree(prompt, tree):
     print tree.reprAsTree()
 
 def testInsertChar():
-    text = "()"
-    def insertChar(tree, char, pos, text):
+    sample = "()"
+    text = TextWithChanges()
+    text.text = sample
+    tokens = tokenizerSexp(text.getOldSlice(0, text.getActualLength() - 1))
+    def insertChar(tree, char, pos):
         tree = tree.charInsertedAt(char, 1)
-        text = text[:pos] + char + text[pos:]
-        return tree, text
-    def treeAndText(prompt, tree, text):
+        return tree
+    def treeAndText(prompt, tree):
         dumpTree(prompt, tree)
-        print prompt, repr(text)
-    tokens = tokenizerSexp(text)
+        term = TerminalController()
+        tree.text.colorRender(term)
 #    print tokens
-    tree, tokensRest = parserSexp(tokens)
-    treeAndText("initial tree is", tree, text)
-    tree, text = insertChar(tree, 'a', 1, text)
-    tree, text = insertChar(tree, ' ', 2, text)
-    tree, text = insertChar(tree, 'b', 3, text)
-#     tree, text = insertChar(tree, "'", 3, text)
-#     tree, text = insertChar(tree, ')', 4, text)
-#     tree, text = insertChar(tree, ')', 4, text)
-    treeAndText("rewritten tree is", tree, text)
+    tree, tokensRest = parserSexp(tokens, text)
+    treeAndText("initial tree is", tree)
+    tree = tree.charInsertedAt('a', 1)
+    tree = tree.charInsertedAt(' ', 2)
+    tree = tree.charInsertedAt('b', 3)
+    treeAndText("rewritten tree is", tree)
+    tree = tree.charInsertedAt("'", 3)
+    treeAndText("rewritten tree is", tree)
+    tree = tree.charInsertedAt(')', 4)
+    tree = tree.charInsertedAt(')', 5)
+    treeAndText("rewritten tree is", tree)
 
-#     tree, text = insertChar(tree, '(', 4, text)
-#     tree, text = insertChar(tree, '(', 5, text)
-#     tree, text = insertChar(tree, ' ', 5, text)
-#    tree = tree.charInsertedAt(' ', 7)
-#    treeAndText("fixed tree is", tree, text)
+    tree = tree.charInsertedAt('(', 4)
+#     tree = tree.charInsertedAt(' ', 6)
+#     tree = tree.charInsertedAt('(', 7)
+#     treeAndText("fixed tree is", tree)
+#     tree = tree.charInsertedAt(' ', 9)
+    treeAndText("fixed tree is", tree)
 
-    # TODO: next lines will work after moveUp will be able to handle
-    # extra chars
-#    tree = bTree.moveUp()
-#    print "tree after move is", tree
+    pathToBTree = tree.getPathForPosition(6)
+    for node in pathToBTree:
+        print ">>>"
+        print node.reprAsTree()
+    qTree = pathToBTree[-2]
+
+    tree = qTree.moveUp()
+    treeAndText("tree after move is", tree)
+    print qTree.getPath()
 
 sample = """
 (define (somefunc u t)
@@ -550,6 +548,5 @@ sample5 = ""
 
 sample6 = "()"
 
-test(sample3)
-#testExtraChars()
-#testInsertChar()
+#test(sample3)
+testInsertChar()
