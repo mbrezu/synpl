@@ -259,5 +259,5 @@ sample5 = ""
 
 sample6 = "()"
 
-#test(sample3)
+test(sample3)
 testInsertChar()
