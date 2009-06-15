@@ -5,8 +5,9 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{7660753C-030E-45B4-BE6A-43A6581E4EF9}</ProjectGuid>
+    <ProjectGuid>{72DF437D-4699-4D32-B331-03E24F4D4997}</ProjectGuid>
     <OutputType>Library</OutputType>
+    <AssemblyName>Synpl.Core</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -15,9 +16,8 @@
     <OutputPath>bin\Debug</OutputPath>
     <DefineConstants>DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>3</WarningLevel>
+    <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
-    <AssemblyName>Synpl.EditorAbstraction</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
@@ -26,16 +26,15 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
-    <AssemblyName>EditorAbstraction</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TextWithChanges.cs" />
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="IAbstractEditor.cs" />
-    <Compile Include="TextChangedEventArgs.cs" />
-    <Compile Include="FormattingHint.cs" />
+    <Compile Include="TextChange.cs" />
+    <Compile Include="CharWithPosition.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
