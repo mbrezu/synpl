@@ -14,19 +14,17 @@
 // You should have received a copy of the GNU General Public License along
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 using System;
 using Gtk;
 
-namespace Synpl.Shell
+namespace Synpl.ShellGtk
 {
-	class MainClass
-	{
-		public static void Main (string[] args)
+	internal class TextTagWorkaround : TextTag
+	{		
+		public TextTagWorkaround(string name, TextTagTable table) : base(name)
 		{
-			Application.Init ();
-			MainWindow win = new MainWindow ();
-			win.Show ();
-			Application.Run ();
+			table.Add(this);
 		}
 	}
 }

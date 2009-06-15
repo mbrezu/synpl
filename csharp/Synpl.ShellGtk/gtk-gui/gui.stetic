@@ -6,10 +6,9 @@
   </configuration>
   <import>
     <widget-library name="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
-    <widget-library name="../../Synpl.EditorAbstraction/bin/Debug/Synpl.EditorAbstraction.dll" />
     <widget-library name="../bin/Debug/Synpl.Shell.exe" internal="true" />
   </import>
-  <widget class="Gtk.Window" id="Synpl.Shell.MainWindow" design-size="400 300">
+  <widget class="Gtk.Window" id="Synpl.ShellGtk.MainWindow" design-size="400 300">
     <property name="MemberName" />
     <property name="Title" translatable="yes">MainWindow</property>
     <property name="WindowPosition">CenterOnParent</property>

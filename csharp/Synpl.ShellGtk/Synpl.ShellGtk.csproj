@@ -55,7 +55,9 @@
     <Compile Include="MainWindow.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="gtk-gui\Synpl.Shell.MainWindow.cs" />
+    <Compile Include="GtkTextViewEditor.cs" />
+    <Compile Include="gtk-gui\Synpl.ShellGtk.MainWindow.cs" />
+    <Compile Include="TextTagWorkaround.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

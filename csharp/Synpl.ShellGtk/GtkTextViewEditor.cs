@@ -18,8 +18,9 @@
 using System;
 using Gtk;
 using System.Collections.Generic;
+using Synpl.EditorAbstraction;
 
-namespace Synpl.EditorAbstraction
+namespace Synpl.ShellGtk
 {
 	public class GtkTextViewEditor : IAbstractEditor
 	{

@@ -21,7 +21,7 @@ using Pango;
 using Synpl.EditorAbstraction;
 using System.Collections.Generic;
 
-namespace Synpl.Shell
+namespace Synpl.ShellGtk
 {
 
 	public partial class MainWindow: Gtk.Window
