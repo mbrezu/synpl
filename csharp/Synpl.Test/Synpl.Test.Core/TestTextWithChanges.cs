@@ -49,22 +49,6 @@ namespace Synpl.Test.Core
 //            Console.WriteLine(_textWc.TestRender());
         }
 
-//        private void ShowChanges()
-//        {
-//            foreach (TextChange change in _textWc.GetChanges())
-//            {
-//                Console.WriteLine("{0}, {1}", change.Position, change.IsDeletion);
-//            }
-//        }
-
-        private void ShowParsableSlice(List<CharWithPosition> slice)
-        {
-            foreach (CharWithPosition cwp in slice)
-            {
-                Console.WriteLine("{0}", cwp);
-            }
-        }
-
         [Test]
         public void TestGetOldSlice()
         {
@@ -111,6 +95,65 @@ namespace Synpl.Test.Core
                 new CharWithPosition(12, '.')
             };
             Assert.AreEqual(expected, slice0);
+        }
+
+        [Test]
+        public void TestValidateSlice()
+        {
+            SetupText();
+            _textWc.ValidateSlice(3, 8);
+            Assert.AreEqual("_A_n_a_ _b_c_e_ _m_e_r_e_.", _textWc.TestRender());
+        }
+
+        [Test]
+        public void TestGetSliceWithChanges()
+        {
+            SetupText();
+            TextWithChanges slice0 = _textWc.GetSliceWithChanges(2, 9);
+            Assert.AreEqual("_a_ AbAcDaDr_e_ _m", slice0.TestRender());
+        }
+
+        [Test]
+        public void TestRemoveSliceWithChanges()
+        {
+            SetupText();
+            _textWc.DeleteChar(11);
+            _textWc.RemoveSliceWithChanges(2, 9);
+            Assert.AreEqual("_A_n_e_rDe_.", _textWc.TestRender());
+        }
+
+        [Test]
+        public void TestInsertSliceWithChanges()
+        {
+            SetupText();
+            _textWc.DeleteChar(11);
+            Assert.AreEqual("_A_n_a_ AbAcDaDr_e_ _m_e_rDe_.", _textWc.TestRender());
+            TextWithChanges slice0 = _textWc.GetSliceWithChanges(2, 9);
+            Assert.AreEqual("_a_ AbAcDaDr_e_ _m", slice0.TestRender());
+            _textWc.RemoveSliceWithChanges(2, 9);
+            Assert.AreEqual("_A_n_e_rDe_.", _textWc.TestRender());
+            _textWc.InsertSliceWithChanges(2, slice0);
+            Assert.AreEqual("_A_n_a_ AbAcDaDr_e_ _m_e_rDe_.", _textWc.TestRender());
+        }
+
+        // The following functions are debugging helpers, they are not
+        // used normally.
+        #pragma warning disable 0169
+        private static void ShowChanges(TextWithChanges twc)
+        {
+            Console.WriteLine("\n***");
+            foreach (TextChange change in twc.GetChanges())
+            {
+                Console.WriteLine("{0}, {1}", change.Position, change.IsDeletion);
+            }
+        }
+
+        private void ShowParsableSlice(List<CharWithPosition> slice)
+        {
+            foreach (CharWithPosition cwp in slice)
+            {
+                Console.WriteLine("{0}", cwp);
+            }
         }
 
     }

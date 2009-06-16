@@ -221,7 +221,7 @@ namespace Synpl.Core
             // Add changes that were after the insert position.
             for (; i < _changes.Count; i++)
             {
-                newChanges.Add(_changes[i]);
+                newChanges.Add(_changes[i].Moved(slice._text.Length));
             }
             _changes = newChanges;
             _text = _text.Substring(0, oldPosition) + slice._text + _text.Substring(oldPosition);
