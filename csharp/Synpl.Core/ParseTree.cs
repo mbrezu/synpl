@@ -95,12 +95,13 @@ namespace Synpl.Core
         }
         #endregion
 
-        #region Public Abstract Methods
-        public abstract string ToStringAsLabel();
-        #endregion
+        #region Public Methods
+        public virtual string ToStringAsLabel()
+        {
+            return String.Empty;
+        }
 
-        #region Public Abstract Methods
-        public string ToStringAsTree()
+        public virtual string ToStringAsTree()
         {
             return ToStringAsTree("");
         }

@@ -5,9 +5,9 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{98777261-E604-4FDD-8748-1B35F359A72E}</ProjectGuid>
+    <ProjectGuid>{E0623D9D-5B93-4D4B-B0C0-50A664264C35}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AssemblyName>Synpl.Test.Core</AssemblyName>
+    <AssemblyName>Synpl.Parser.Sexp</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -29,26 +29,18 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="nunit.core, Version=2.4.7.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
-      <Package>nunit</Package>
-    </Reference>
-    <Reference Include="nunit.framework, Version=2.4.7.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
-      <Package>nunit</Package>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TestTextWithChanges.cs" />
+    <Compile Include="SexpParser.cs" />
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="TestSexpParser.cs" />
+    <Compile Include="ParseTreeAtom.cs" />
+    <Compile Include="ParseTreeQuote.cs" />
+    <Compile Include="ParseTreeList.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Synpl.Core\Synpl.Core.csproj">
       <Project>{72DF437D-4699-4D32-B331-03E24F4D4997}</Project>
       <Name>Synpl.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Synpl.Parser\Synpl.Parser.Sexp\Synpl.Parser.Sexp.csproj">
-      <Project>{E0623D9D-5B93-4D4B-B0C0-50A664264C35}</Project>
-      <Name>Synpl.Parser.Sexp</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

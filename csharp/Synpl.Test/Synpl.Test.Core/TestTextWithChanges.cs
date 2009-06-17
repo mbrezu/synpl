@@ -6,9 +6,12 @@ using System.Collections.Generic;
 namespace Synpl.Test.Core
 {
     [TestFixture]
-    public class Tests
+    public class TestTextWithChanges
     {
+        #region Private Storage
         private TextWithChanges _textWc;
+        #endregion
+        
         [SetUp]
         public void Init()
         {
@@ -136,6 +139,7 @@ namespace Synpl.Test.Core
             Assert.AreEqual("_A_n_a_ AbAcDaDr_e_ _m_e_rDe_.", _textWc.TestRender());
         }
 
+        #region Private Helper Methods
         // The following functions are debugging helpers, they are not
         // used normally.
         #pragma warning disable 0169
@@ -155,6 +159,7 @@ namespace Synpl.Test.Core
                 Console.WriteLine("{0}", cwp);
             }
         }
+        #endregion
 
     }
 }

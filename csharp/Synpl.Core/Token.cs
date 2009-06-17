@@ -22,7 +22,7 @@ namespace Synpl.Core
     public class Token
     {
         #region Private Storage
-        private string _kind;
+        private int _kind;
         private string _content;
         private int _startPosition;
         private int _endPosition;
@@ -41,7 +41,7 @@ namespace Synpl.Core
             }
         }
 
-        public string Kind {
+        public int Kind {
             get {
                 return _kind;
             }
@@ -55,7 +55,7 @@ namespace Synpl.Core
         #endregion
 
         #region Constructor
-        public Token(string kind, string content, int startPosition, int endPosition)
+        public Token(int kind, string content, int startPosition, int endPosition)
         {
             _kind = kind;
             _content = content;
@@ -72,14 +72,34 @@ namespace Synpl.Core
                              _startPosition + positionOffset, 
                              _endPosition + positionOffset);
         }
+        
         public override string ToString ()
         {
-            return string.Format("[Token:  Kind={0}, Content={1}, EndPosition={2},StartPosition={3}]", 
+            return string.Format("[Token:  Kind={0}, Content={1}, StartPosition={2}, EndPosition={3}]", 
                                  Kind, 
                                  Content, 
-                                 EndPosition, 
-                                 StartPosition);
+                                 StartPosition, 
+                                 EndPosition);
         }
+        
+        public override bool Equals (object obj)
+        {
+            Token other = obj as Token;
+            if (obj == null)
+            {
+                return false;
+            }
+            return _content == other._content 
+                && _kind == other._kind
+                    && _startPosition == other._startPosition
+                    && _endPosition == other._endPosition;
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
+
         #endregion
     }
 }
