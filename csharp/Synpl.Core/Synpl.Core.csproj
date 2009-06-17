@@ -35,6 +35,11 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="TextChange.cs" />
     <Compile Include="CharWithPosition.cs" />
+    <Compile Include="Token.cs" />
+    <Compile Include="ParseException.cs" />
+    <Compile Include="Parser.cs" />
+    <Compile Include="ParseTree.cs" />
+    <Compile Include="IIdGenerator.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
