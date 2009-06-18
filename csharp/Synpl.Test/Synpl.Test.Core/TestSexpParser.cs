@@ -15,7 +15,7 @@ namespace Synpl.Test.Core
         [Test]
         public void TestTokenizer()
         {
-            Synpl.Core.Parser parser = new SexpParser();
+            Synpl.Core.Parser parser = SexpParser.Instance;
             List<CharWithPosition> text = EnumerateString("(+ 1 2)");
             List<Token> tokens = parser.TokenizerFunc(text);
             

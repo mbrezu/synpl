@@ -15,6 +15,11 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+// TODO: need to replace the List<T> with a List2<T> (find a good name)
+// that has a fast GetRange operation (because we do that a lot).
+//
+// Maybe write a CowList (COW - copy on write) that implements IList<T>
+// and builds on List.
 
 using System;
 using Synpl.Core;
@@ -33,22 +38,91 @@ namespace Synpl.Parser.Sexp
         };
         
         #region Private fields
+        private static SexpParser _instance;
         #endregion
 
+        #region Properties
+        public static SexpParser Instance {
+            get {
+                if (_instance == null)
+                {
+                    _instance = new SexpParser();
+                }                        
+                return _instance;
+            }
+        }
+        #endregion
+        
         #region Constructor
-        public SexpParser() : base(Parse, Tokenize, new DefaultIdGenerator())
-        {
+        private SexpParser() : base(Parse, Tokenize, new DefaultIdGenerator())
+        {            
         }
         #endregion
 
         #region Parser Implementation
         public static void Parse(List<Token> tokens, 
-                                      TextWithChanges text,
-                                      out ParseTree parseTree,
-                                      out List<Token> remainingTokens)
+                          TextWithChanges text,
+                          out ParseTree parseTree,
+                          out List<Token> remainingTokens)
         {
-            parseTree = null;
-            remainingTokens = null;
+            if (tokens.Count == 0)
+            {
+                throw new ParseException("No tokens in stream.");
+            }
+            switch ((TokenTypes)tokens[0].Kind)
+            {
+            case TokenTypes.Quote:
+                ParseTree quotedTree;
+                Parse(tokens.GetRange(1, tokens.Count - 1),
+                      text,
+                      out quotedTree,
+                      out remainingTokens);
+                parseTree = new ParseTreeQuote(tokens[0].StartPosition,
+                                               quotedTree.EndPosition,
+                                               quotedTree,
+                                               SexpParser.Instance,
+                                               null,
+                                               text);
+                return;
+            case TokenTypes.OpenParen:
+                List<ParseTree> members = new List<ParseTree>();
+                List<Token> iterTokens = tokens.GetRange(1, tokens.Count - 1);
+                while (iterTokens.Count > 0 
+                       && (TokenTypes)iterTokens[0].Kind != TokenTypes.CloseParen)
+                {
+                    ParseTree member;
+                    List<Token> nextIterTokens;
+                    Parse(iterTokens, text, out member, out nextIterTokens);
+                    iterTokens = nextIterTokens;
+                    members.Add(member);
+                }
+                if (iterTokens.Count == 0)
+                {
+                    throw new ParseException("No tokens left in stream, expected a ')'.");
+                }
+                remainingTokens = iterTokens.GetRange(1, iterTokens.Count - 1);
+                parseTree = new ParseTreeList(tokens[0].StartPosition,
+                                              iterTokens[0].EndPosition,
+                                              members,
+                                              SexpParser.Instance,
+                                              null,
+                                              text);                                              
+                return;
+            case TokenTypes.CloseParen:
+                throw new ParseException("Unexpected ')'.");
+            case TokenTypes.Atom:
+                remainingTokens = tokens.GetRange(1, tokens.Count - 1);
+                parseTree = new ParseTreeAtom(tokens[0].StartPosition,
+                                              tokens[0].EndPosition,
+                                              tokens[0].Content,
+                                              SexpParser.Instance,
+                                              null,
+                                              text);
+                return;
+            default:
+                throw new ParseException(String.Format("Unknown token '{0}'.", 
+                                                       tokens[0].ToString()));
+            }
         }
 
         public static List<Token> Tokenize(List<CharWithPosition> text)

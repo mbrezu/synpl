@@ -44,6 +44,10 @@ namespace Synpl.Core
             get {
                 return _parent;
             }
+            set
+            {
+                _parent = value;
+            }
         }
 
         public Parser Parser {
@@ -92,6 +96,10 @@ namespace Synpl.Core
             _parent = parent;
             _text = text;
             _id = parser.NewId();
+            foreach (ParseTree node in _subTrees)
+            {
+                node._parent = this;
+            }
         }
         #endregion
 
