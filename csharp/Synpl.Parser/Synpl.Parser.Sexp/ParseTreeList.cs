@@ -35,17 +35,10 @@ namespace Synpl.Parser.Sexp
                    members,
                    parser,
                    parent,
-                   text)
+                   text,
+                   "() (list)")
         {
         }
-        #endregion
-
-        #region Public Methods
-        public override string ToStringAsLabel ()
-        {
-            return "() (list)";
-        }
-
         #endregion
     }
 }

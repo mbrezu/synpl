@@ -15,11 +15,8 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-// TODO: need to replace the List<T> with a List2<T> (find a good name)
+// TODO: need to replace the List<T> with a CowList<T>
 // that has a fast GetRange operation (because we do that a lot).
-//
-// Maybe write a CowList (COW - copy on write) that implements IList<T>
-// and builds on List.
 
 using System;
 using Synpl.Core;

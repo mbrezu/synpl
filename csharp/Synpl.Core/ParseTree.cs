@@ -31,6 +31,7 @@ namespace Synpl.Core
         private ParseTree _parent;
         private TextWithChanges _text;
         private int _id;
+        private string _label;
         #endregion
 
         #region Properties
@@ -79,6 +80,12 @@ namespace Synpl.Core
                 return _id;
             }
         }
+
+        public string Label {
+            get {
+                return _label;
+            }
+        }
         #endregion
 
         #region Constructor
@@ -87,7 +94,8 @@ namespace Synpl.Core
                          List<ParseTree> subTrees, 
                          Parser parser,
                          ParseTree parent,
-                         TextWithChanges text)
+                         TextWithChanges text,
+                         string label)
         {
             _startPosition = startPosition;
             _endPosition = endPosition;
@@ -96,6 +104,7 @@ namespace Synpl.Core
             _parent = parent;
             _text = text;
             _id = parser.NewId();
+            _label = label;
             foreach (ParseTree node in _subTrees)
             {
                 node._parent = this;
@@ -106,7 +115,7 @@ namespace Synpl.Core
         #region Public Methods
         public virtual string ToStringAsLabel()
         {
-            return String.Empty;
+            return _label;
         }
 
         public virtual string ToStringAsTree()
@@ -160,7 +169,7 @@ namespace Synpl.Core
                 return this;
             }
             int head = path[0];
-            if (head > 0 && head < _subTrees.Count)
+            if (head >= 0 && head < _subTrees.Count)
             {
                 return _subTrees[head].GetNodeAtPath(path.GetRange(1, path.Count - 1));
             }
@@ -287,7 +296,7 @@ namespace Synpl.Core
             return next.MoveUp();
         }
 
-        public List<CharWithPosition> ToStringAsCode(bool useOldVersion)
+        public List<CharWithPosition> RepresentAsCode(bool useOldVersion)
         {
             if (useOldVersion)
             {
@@ -297,6 +306,11 @@ namespace Synpl.Core
             {
                 return _text.GetCurrentSlice(_startPosition, _endPosition);
             }
+        }
+
+        public string ToStringAsCode(bool useOldVersion)
+        {
+            return CharListToString(RepresentAsCode(useOldVersion));
         }
 
         public ParseTree GetRoot()
@@ -390,7 +404,7 @@ namespace Synpl.Core
 
         private ParseTree Reparse(bool useOldVersion)
         {
-            List<CharWithPosition> code = ToStringAsCode(useOldVersion);
+            List<CharWithPosition> code = RepresentAsCode(useOldVersion);
             List<Token> tokens = _parser.TokenizerFunc(code);
             ParseTree reparsedSelf;
             List<Token> tokensRest;
@@ -457,6 +471,16 @@ namespace Synpl.Core
                 sb.Append(node.ToStringAsTree(indent  + "  "));
             }
             return sb.ToString();
+        }
+        
+        private static string CharListToString(List<CharWithPosition> chars)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (CharWithPosition ch in chars)
+            {
+                sb.Append(ch.Char);
+            }
+            return sb.ToString();                
         }
         #endregion
     }

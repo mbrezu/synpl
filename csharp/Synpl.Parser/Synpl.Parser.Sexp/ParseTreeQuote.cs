@@ -35,17 +35,10 @@ namespace Synpl.Parser.Sexp
                    MakeList(quotedTree),
                    parser,
                    parent,
-                   text)
+                   text,
+                   "' (quote)")
         {
         }
-        #endregion
-
-        #region Public Methods
-        public override string ToStringAsLabel ()
-        {
-            return "' (quote)";
-        }
-
         #endregion
 
         #region Private Helper Methods

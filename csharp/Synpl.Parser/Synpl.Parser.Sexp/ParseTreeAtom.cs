@@ -47,16 +47,10 @@ namespace Synpl.Parser.Sexp
                    new List<ParseTree>(),
                    parser,
                    parent,
-                   text)
+                   text,
+                   content)
         {
             _content = content;
-        }
-        #endregion
-
-        #region Public Methods
-        public override string ToStringAsLabel()
-        {
-            return _content;
         }
         #endregion
     }
