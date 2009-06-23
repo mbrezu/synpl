@@ -110,10 +110,6 @@ namespace Synpl.Test.Core
             Assert.AreEqual(atom.Content, atom2.Content);
         }
 
-        // HACK: Test
-
-        // FIXME: Test
-
         // TODO: Write a test for GetIndexInParent()
 
         // TODO: Write a previous sibling/next sibling test.

@@ -40,6 +40,7 @@
     <Compile Include="TestTextWithChanges.cs" />
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="TestSexpParser.cs" />
+    <Compile Include="TestCowList.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Synpl.Core\Synpl.Core.csproj">

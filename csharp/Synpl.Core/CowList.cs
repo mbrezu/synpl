@@ -97,6 +97,12 @@ namespace Synpl.Core
                 _storage = new List<U>();
                 _users = 1;
             }
+
+            public SharedList(List<U> storage)
+            {
+                _storage = storage;
+                _users = 1;
+            }            
             #endregion
 
             #region Properties
@@ -118,14 +124,19 @@ namespace Synpl.Core
             public SharedList<U> Detach(int index, int length)
             {
                 SharedList<U> result = new SharedList<U>();
-                result._storage = _storage.GetRange(0, _storage.Count);
-                _users --;
+                result._storage = _storage.GetRange(index, length);
+                DecreaseUsers();
                 return result;
             }
 
             public SharedList<U> Detach()
             {
                 return Detach(0, _storage.Count);
+            }
+
+            public void DecreaseUsers()
+            {
+                _users --;
             }
             #endregion
         }
@@ -300,6 +311,14 @@ namespace Synpl.Core
             }
         }
         #endregion
+
+        #region Public methods
+        public void Sort()
+        {
+            GetOwnCopy();
+            _storage.Storage.Sort();
+        }
+        #endregion
         
         #region Constructor
         public CowList()
@@ -307,6 +326,20 @@ namespace Synpl.Core
             _storage = new SharedList<T>();
             _offset = 0;
             _length = 0;
+        }
+
+        public CowList(List<T> storage)
+        {
+            _storage = new SharedList<T>(storage);
+            _offset = 0;
+            _length = storage.Count;
+        }
+        #endregion
+
+        #region Destructor
+        ~CowList()
+        {
+            _storage.DecreaseUsers();
         }
         #endregion
     }
