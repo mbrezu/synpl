@@ -56,9 +56,9 @@ namespace Synpl.Test.Core
         public void TestGetOldSlice()
         {
             SetupText();
-            List<CharWithPosition> slice0 = _textWc.GetOldSlice(0, 20);
-            List<CharWithPosition> expected = 
-                new List<CharWithPosition>() { 
+            CowList<CharWithPosition> slice0 = _textWc.GetOldSlice(0, 20);
+            CowList<CharWithPosition> expected = 
+                new CowList<CharWithPosition>() { 
                 new CharWithPosition(0, 'A'),
                 new CharWithPosition(1, 'n'),
                 new CharWithPosition(2, 'a'),
@@ -80,9 +80,9 @@ namespace Synpl.Test.Core
         public void TestGetCurrentSlice()
         {
             SetupText();
-            List<CharWithPosition> slice0 = _textWc.GetCurrentSlice(0, 20);
-            List<CharWithPosition> expected = 
-                new List<CharWithPosition>() { 
+            CowList<CharWithPosition> slice0 = _textWc.GetCurrentSlice(0, 20);
+            CowList<CharWithPosition> expected = 
+                new CowList<CharWithPosition>() { 
                 new CharWithPosition(0, 'A'),
                 new CharWithPosition(1, 'n'),
                 new CharWithPosition(2, 'a'),

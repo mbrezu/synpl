@@ -57,10 +57,10 @@ namespace Synpl.Parser.Sexp
         #endregion
 
         #region Parser Implementation
-        public static void Parse(List<Token> tokens, 
-                          TextWithChanges text,
-                          out ParseTree parseTree,
-                          out List<Token> remainingTokens)
+        public static void Parse(CowList<Token> tokens, 
+                                 TextWithChanges text,
+                                 out ParseTree parseTree,
+                                 out CowList<Token> remainingTokens)
         {
             if (tokens.Count == 0)
             {
@@ -70,7 +70,7 @@ namespace Synpl.Parser.Sexp
             {
             case TokenTypes.Quote:
                 ParseTree quotedTree;
-                Parse(tokens.GetRange(1, tokens.Count - 1),
+                Parse(tokens.Tail,
                       text,
                       out quotedTree,
                       out remainingTokens);
@@ -82,13 +82,13 @@ namespace Synpl.Parser.Sexp
                                                text);
                 return;
             case TokenTypes.OpenParen:
-                List<ParseTree> members = new List<ParseTree>();
-                List<Token> iterTokens = tokens.GetRange(1, tokens.Count - 1);
+                CowList<ParseTree> members = new CowList<ParseTree>();
+                CowList<Token> iterTokens = tokens.Tail;
                 while (iterTokens.Count > 0 
                        && (TokenTypes)iterTokens[0].Kind != TokenTypes.CloseParen)
                 {
                     ParseTree member;
-                    List<Token> nextIterTokens;
+                    CowList<Token> nextIterTokens;
                     Parse(iterTokens, text, out member, out nextIterTokens);
                     iterTokens = nextIterTokens;
                     members.Add(member);
@@ -97,7 +97,7 @@ namespace Synpl.Parser.Sexp
                 {
                     throw new ParseException("No tokens left in stream, expected a ')'.");
                 }
-                remainingTokens = iterTokens.GetRange(1, iterTokens.Count - 1);
+                remainingTokens = iterTokens.Tail;
                 parseTree = new ParseTreeList(tokens[0].StartPosition,
                                               iterTokens[0].EndPosition,
                                               members,
@@ -108,7 +108,7 @@ namespace Synpl.Parser.Sexp
             case TokenTypes.CloseParen:
                 throw new ParseException("Unexpected ')'.");
             case TokenTypes.Atom:
-                remainingTokens = tokens.GetRange(1, tokens.Count - 1);
+                remainingTokens = tokens.Tail;
                 parseTree = new ParseTreeAtom(tokens[0].StartPosition,
                                               tokens[0].EndPosition,
                                               tokens[0].Content,
@@ -122,9 +122,9 @@ namespace Synpl.Parser.Sexp
             }
         }
 
-        public static List<Token> Tokenize(List<CharWithPosition> text)
+        public static CowList<Token> Tokenize(CowList<CharWithPosition> text)
         {
-            List<Token> result = new List<Token>();
+            CowList<Token> result = new CowList<Token>();
             for (int pos = 0; pos < text.Count;)
             {
                 CharWithPosition ch = text[pos];

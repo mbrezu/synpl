@@ -16,10 +16,10 @@ namespace Synpl.Test.Core
         public void TestTokenizer()
         {
             Synpl.Core.Parser parser = SexpParser.Instance;
-            List<CharWithPosition> text = EnumerateString("(+ 1 2)");
-            List<Token> tokens = parser.TokenizerFunc(text);
+            CowList<CharWithPosition> text = EnumerateString("(+ 1 2)");
+            CowList<Token> tokens = parser.TokenizerFunc(text);
             
-            List<Token> expectedTokens = new List<Token>();
+            CowList<Token> expectedTokens = new CowList<Token>();
             expectedTokens.Add(new Token((int)SexpParser.TokenTypes.OpenParen, "(", 0, 1));
             expectedTokens.Add(new Token((int)SexpParser.TokenTypes.Atom, "+", 1, 2));
             expectedTokens.Add(new Token((int)SexpParser.TokenTypes.Atom, "1", 3, 4));
@@ -64,7 +64,7 @@ namespace Synpl.Test.Core
       (32,33): 3
       (34,35): 4
       (36,37): 5
-";                
+";
             Assert.AreEqual(expectedTreeRepr, parseTree.ToStringAsTree());
         }
 
@@ -77,7 +77,7 @@ namespace Synpl.Test.Core
      '(1 2 3))  
 ";
             ParseTree parseTree = GetTree(sourceCode);
-            List<Token> tokens = GetTokens(sourceCode);
+            CowList<Token> tokens = GetTokens(sourceCode);
             int lastAtomPosition = 0;
             foreach (Token token in tokens)
             {
@@ -86,7 +86,7 @@ namespace Synpl.Test.Core
                     lastAtomPosition = token.StartPosition;
                 }
             }
-            List<ParseTree> pathToAtom = parseTree.GetPathForPosition(lastAtomPosition);
+            CowList<ParseTree> pathToAtom = parseTree.GetPathForPosition(lastAtomPosition);
             Assert.AreEqual(4, pathToAtom.Count);
             ParseTree ptAtom = pathToAtom[pathToAtom.Count - 1];
             Assert.IsTrue(ptAtom is ParseTreeAtom);
@@ -95,8 +95,8 @@ namespace Synpl.Test.Core
             Assert.AreEqual(39, atom.EndPosition);
             Assert.AreEqual("3", atom.Content);
             
-            List<int> path = atom.GetPath();
-            List<int> expectedPath = new List<int>();
+            CowList<int> path = atom.GetPath();
+            CowList<int> expectedPath = new CowList<int>();
             expectedPath.Add(2);
             expectedPath.Add(0);
             expectedPath.Add(2);
@@ -122,7 +122,7 @@ namespace Synpl.Test.Core
         // The following functions are debugging helpers, they are not
         // used normally.
         #pragma warning disable 0169
-        private List<Token> GetTokens(string sourceCode)
+        private CowList<Token> GetTokens(string sourceCode)
         {
             return SexpParser.Instance.TokenizerFunc(EnumerateString(sourceCode));
         }
@@ -130,18 +130,18 @@ namespace Synpl.Test.Core
         private ParseTree GetTree(string sourceCode)
         {
             Synpl.Core.Parser parser = SexpParser.Instance;
-            List<CharWithPosition> text = EnumerateString(sourceCode);
-            List<Token> tokens = parser.TokenizerFunc(text);
+            CowList<CharWithPosition> text = EnumerateString(sourceCode);
+            CowList<Token> tokens = parser.TokenizerFunc(text);
             TextWithChanges textWithChanges = new TextWithChanges();
             textWithChanges.SetText(sourceCode);
             ParseTree parseTree;
-            List<Token> remainingTokens;
+            CowList<Token> remainingTokens;
             parser.ParserFunc(tokens, textWithChanges, out parseTree, out remainingTokens);
             Assert.AreEqual(0, remainingTokens.Count);
             return parseTree;
         }
         
-        private string DumpCollection<T>(List<T> collection)
+        private string DumpCollection<T>(IList<T> collection)
         {
             StringBuilder sb = new StringBuilder();
             foreach (T item in collection)
@@ -152,9 +152,9 @@ namespace Synpl.Test.Core
             return sb.ToString();
         }
         
-        private List<CharWithPosition> EnumerateString(string str)
+        private CowList<CharWithPosition> EnumerateString(string str)
         {
-            List<CharWithPosition> result = new List<CharWithPosition>();
+            CowList<CharWithPosition> result = new CowList<CharWithPosition>();
             for (int i = 0; i < str.Length; i++)
             {
                 result.Add(new CharWithPosition(i, str[i]));

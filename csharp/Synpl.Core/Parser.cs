@@ -23,11 +23,11 @@ namespace Synpl.Core
     public class Parser
     {
         #region Delegates
-        public delegate List<Token> TokenizerFunction(List<CharWithPosition> text);                                          
-        public delegate void ParserFunction(List<Token> tokens, 
+        public delegate CowList<Token> TokenizerFunction(CowList<CharWithPosition> text);                                          
+        public delegate void ParserFunction(CowList<Token> tokens, 
                                             TextWithChanges textWithChanges,
                                             out ParseTree parseTree,
-                                            out List<Token> remainingTokens);
+                                            out CowList<Token> remainingTokens);
         #endregion
 
         #region Private Storage

@@ -42,9 +42,9 @@ namespace Synpl.Parser.Sexp
         #endregion
 
         #region Private Helper Methods
-        private static List<ParseTree> MakeList(ParseTree item)
+        private static CowList<ParseTree> MakeList(ParseTree item)
         {
-            List<ParseTree> result = new List<ParseTree>();
+            CowList<ParseTree> result = new CowList<ParseTree>();
             result.Add(item);
             return result;
         }

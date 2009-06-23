@@ -44,7 +44,7 @@ namespace Synpl.Parser.Sexp
                              TextWithChanges text) 
             : base(startPosition, 
                    endPosition, 
-                   new List<ParseTree>(),
+                   new CowList<ParseTree>(),
                    parser,
                    parent,
                    text,

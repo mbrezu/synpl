@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections;
+using System.Text;
 
 namespace Synpl.Core
 {
@@ -29,7 +30,7 @@ namespace Synpl.Core
                 _storage = cowList._storage.Storage;
                 _offset = cowList._offset;
                 _length = cowList._length;
-                _currentPosition = cowList._offset;
+                _currentPosition = cowList._offset - 1;
             }
             #endregion
 
@@ -46,6 +47,10 @@ namespace Synpl.Core
             {
                 get
                 {
+                    if (_currentPosition < _offset)
+                    {
+                        throw new InvalidOperationException("Call MoveNext() first.");
+                    }
                     return _storage[_currentPosition];
                 }
             }
@@ -55,17 +60,13 @@ namespace Synpl.Core
                 if (_currentPosition < _offset + _length)
                 {
                     _currentPosition ++;
-                    return true;
                 }
-                else
-                {
-                    return false;
-                }
+                return _currentPosition < _offset + _length;
             }
 
             public void Reset()
             {
-                _currentPosition = _offset;
+                _currentPosition = _offset - 1;
             }
 
             public void Dispose()
@@ -318,6 +319,59 @@ namespace Synpl.Core
             GetOwnCopy();
             _storage.Storage.Sort();
         }
+
+        public void AddRange(IList<T> others)
+        {
+            GetOwnCopy();
+            foreach (T item in others)
+            {
+                Add(item);
+            }
+        }
+
+        public override bool Equals (object obj)
+        {
+            CowList<T> other = obj as CowList<T>;
+            if (other == null)
+            {
+                return false;
+            }
+            if (Count != other.Count)
+            {
+                return false;
+            }
+            for (int i = 0; i < Count; i++)
+            {
+                if (this[i] == null && other[i] == null)
+                {
+                    continue;
+                }
+                if (this[i] != null && !this[i].Equals(other[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public override string ToString ()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("[");
+            foreach (T item in this)
+            {
+                sb.Append(item.ToString());
+                sb.Append(" ");
+            }
+            sb.Append("]");
+            return sb.ToString();
+        }
+
+        public override int GetHashCode ()
+        {
+            return ToString().GetHashCode();
+        }
+        
         #endregion
         
         #region Constructor

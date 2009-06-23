@@ -26,7 +26,7 @@ namespace Synpl.Parser.Sexp
         #region Constructor
         public ParseTreeList(int startPosition, 
                               int endPosition, 
-                              List<ParseTree> members,
+                              CowList<ParseTree> members,
                               Synpl.Core.Parser parser,
                               ParseTree parent,
                               TextWithChanges text)

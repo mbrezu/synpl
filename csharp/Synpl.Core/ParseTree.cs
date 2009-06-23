@@ -26,7 +26,7 @@ namespace Synpl.Core
         #region Private Storage
         private int _startPosition;
         private int _endPosition;
-        private List<ParseTree>  _subTrees;
+        private CowList<ParseTree>  _subTrees;
         private Parser _parser;
         private ParseTree _parent;
         private TextWithChanges _text;
@@ -63,7 +63,7 @@ namespace Synpl.Core
             }
         }
 
-        public List<ParseTree> SubTrees {
+        public CowList<ParseTree> SubTrees {
             get {
                 return _subTrees;
             }
@@ -91,7 +91,7 @@ namespace Synpl.Core
         #region Constructor
         public ParseTree(int startPosition, 
                          int endPosition, 
-                         List<ParseTree> subTrees, 
+                         CowList<ParseTree> subTrees, 
                          Parser parser,
                          ParseTree parent,
                          TextWithChanges text,
@@ -147,22 +147,22 @@ namespace Synpl.Core
         /// An [1, 0] list means the node is the first subtree
         /// of the second subtree of the root.
         /// </returns>
-        public List<int> GetPath()
+        public CowList<int> GetPath()
         {
             int index = GetIndexInParent();
             if (index == -1)
             {
-                return new List<int>();
+                return new CowList<int>();
             }
             else
             {
-                List<int> result = _parent.GetPath();
+                CowList<int> result = _parent.GetPath();
                 result.Add(index);
                 return result;
             }
         }
 
-        public ParseTree GetNodeAtPath(List<int> path)
+        public ParseTree GetNodeAtPath(CowList<int> path)
         {
             if (path.Count == 0)
             {
@@ -171,7 +171,7 @@ namespace Synpl.Core
             int head = path[0];
             if (head >= 0 && head < _subTrees.Count)
             {
-                return _subTrees[head].GetNodeAtPath(path.GetRange(1, path.Count - 1));
+                return _subTrees[head].GetNodeAtPath(path.Tail);
             }
             throw new ArgumentException("Invalid path.");
         }
@@ -181,12 +181,12 @@ namespace Synpl.Core
             return position >= _startPosition && position < _endPosition;
         }
 
-        public List<ParseTree> GetPathForPosition(int position)
+        public CowList<ParseTree> GetPathForPosition(int position)
         {            
             if (!Contains(position)) {
-                return new List<ParseTree>();
+                return new CowList<ParseTree>();
             }
-            List<ParseTree> result = new List<ParseTree>();
+            CowList<ParseTree> result = new CowList<ParseTree>();
             result.Add(this);
             foreach (ParseTree subTree in _subTrees)
             {
@@ -296,7 +296,7 @@ namespace Synpl.Core
             return next.MoveUp();
         }
 
-        public List<CharWithPosition> RepresentAsCode(bool useOldVersion)
+        public CowList<CharWithPosition> RepresentAsCode(bool useOldVersion)
         {
             if (useOldVersion)
             {
@@ -324,7 +324,7 @@ namespace Synpl.Core
 
         public ParseTree CharInsertedAt(char ch, int position)
         {
-            List<ParseTree> path = GetPathForPosition(position);
+            CowList<ParseTree> path = GetPathForPosition(position);
             ParseTree nodeAffected = null;
             if (path.Count == 0)
             {
@@ -346,7 +346,7 @@ namespace Synpl.Core
         // text.
         public ParseTree CharDeletedAt(int position)
         {
-            List<ParseTree> path = GetPathForPosition(position);
+            CowList<ParseTree> path = GetPathForPosition(position);
             ParseTree nodeAffected = null;
             if (path.Count == 0)
             {
@@ -404,10 +404,10 @@ namespace Synpl.Core
 
         private ParseTree Reparse(bool useOldVersion)
         {
-            List<CharWithPosition> code = RepresentAsCode(useOldVersion);
-            List<Token> tokens = _parser.TokenizerFunc(code);
+            CowList<CharWithPosition> code = RepresentAsCode(useOldVersion);
+            CowList<Token> tokens = _parser.TokenizerFunc(code);
             ParseTree reparsedSelf;
-            List<Token> tokensRest;
+            CowList<Token> tokensRest;
             _parser.ParserFunc(tokens, _text, out reparsedSelf, out tokensRest);
             if (tokensRest.Count > 0)
             {
@@ -473,7 +473,7 @@ namespace Synpl.Core
             return sb.ToString();
         }
         
-        private static string CharListToString(List<CharWithPosition> chars)
+        private static string CharListToString(CowList<CharWithPosition> chars)
         {
             StringBuilder sb = new StringBuilder();
             foreach (CharWithPosition ch in chars)

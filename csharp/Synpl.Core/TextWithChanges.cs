@@ -33,14 +33,14 @@ namespace Synpl.Core
 	public class TextWithChanges
 	{
         #region Private Storage
-        private List<TextChange> _changes;
+        private CowList<TextChange> _changes;
         private string _text;
         #endregion
 
         #region Constructor
 		public TextWithChanges()
 		{
-            _changes = new List<TextChange>();
+            _changes = new CowList<TextChange>();
             _text = String.Empty;
 		}
         #endregion
@@ -48,7 +48,7 @@ namespace Synpl.Core
         #region Public Methods
         public void SetText(string text)
         {
-            _changes = new List<TextChange>();
+            _changes = new CowList<TextChange>();
             _text = text;
         }
 
@@ -176,7 +176,7 @@ namespace Synpl.Core
         {
             int oldStart = ConvertActualPositionToOld(start);
             int oldEnd = ConvertActualPositionToOld(end, true);
-            List<TextChange> newChanges = new List<TextChange>();
+            CowList<TextChange> newChanges = new CowList<TextChange>();
             foreach (TextChange change in _changes)
             {
                 if (change.Position < oldStart) {
@@ -215,7 +215,7 @@ namespace Synpl.Core
         public void InsertSliceWithChanges(int position, TextWithChanges slice)
         {
             int oldPosition = ConvertActualPositionToOld(position);
-            List<TextChange> newChanges = new List<TextChange>();
+            CowList<TextChange> newChanges = new CowList<TextChange>();
             // Select changes before the insert position.
             int i;
             for (i = 0; i < _changes.Count; i++)
@@ -243,11 +243,11 @@ namespace Synpl.Core
             _text = _text.Substring(0, oldPosition) + slice._text + _text.Substring(oldPosition);
         }
 
-        public List<CharWithPosition> GetCurrentSlice(int start, int end)
+        public CowList<CharWithPosition> GetCurrentSlice(int start, int end)
         {
             int oldStart = ConvertActualPositionToOld(start);
             int oldEnd = ConvertActualPositionToOld(end, true);
-            List<TextChange> deletes = new List<TextChange>();
+            CowList<TextChange> deletes = new CowList<TextChange>();
             foreach (TextChange change in _changes)
             {
                 if (change.IsDeletion && change.IsBetween(oldStart, oldEnd)) 
@@ -255,7 +255,7 @@ namespace Synpl.Core
                     deletes.Add(change);
                 }
             }
-            List<CharWithPosition> result = new List<CharWithPosition>();
+            CowList<CharWithPosition> result = new CowList<CharWithPosition>();
             int k = 0;
             int runningIndex = start;
             for (int i = oldStart; i < oldEnd && i < _text.Length; i++)
@@ -274,18 +274,18 @@ namespace Synpl.Core
             return result;
         }
 
-        public List<CharWithPosition> GetOldSlice(int start, int end)
+        public CowList<CharWithPosition> GetOldSlice(int start, int end)
         {
             int oldStart = ConvertActualPositionToOld(start);
             int oldEnd = ConvertActualPositionToOld(end, true);
-            List<TextChange> relevantChanges = new List<TextChange>();
+            CowList<TextChange> relevantChanges = new CowList<TextChange>();
             foreach (TextChange change in _changes)
             {
                 if (change.IsBetween(oldStart, oldEnd)) {
                     relevantChanges.Add(change);
                 }
             }
-            List<CharWithPosition> result = new List<CharWithPosition>();
+            CowList<CharWithPosition> result = new CowList<CharWithPosition>();
             int k = 0;
             int runningIndex = start;
             for (int i = oldStart; i < oldEnd && i < _text.Length; i++)
@@ -321,7 +321,7 @@ namespace Synpl.Core
             int oldStart = ConvertActualPositionToOld(start);
             int oldEnd = ConvertActualPositionToOld(end, true);
 
-            List<TextChange> changesBefore = new List<TextChange>();
+            CowList<TextChange> changesBefore = new CowList<TextChange>();
             foreach (TextChange change in _changes)
             {
                 if (change.Position < oldStart) {
@@ -329,7 +329,7 @@ namespace Synpl.Core
                 }
             }
 
-            List<TextChange> deletesBetween = new List<TextChange>();
+            CowList<TextChange> deletesBetween = new CowList<TextChange>();
             foreach (TextChange change in _changes)
             {
                 if (change.IsDeletion && change.IsBetween(oldStart, oldEnd))
@@ -339,7 +339,7 @@ namespace Synpl.Core
             }
 
             int offset = - deletesBetween.Count;
-            List<TextChange> changesAfter = new List<TextChange>();
+            CowList<TextChange> changesAfter = new CowList<TextChange>();
             foreach (TextChange change in _changes)
             {
                 if (change.Position >= oldEnd)

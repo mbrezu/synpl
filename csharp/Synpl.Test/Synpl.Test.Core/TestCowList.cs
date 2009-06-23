@@ -109,5 +109,40 @@ namespace Synpl.Test.Core
             Assert.AreEqual(4, _cowList1[3]);
             Assert.AreEqual(4, _cowList1[4]);
         }
+
+        [Test]
+        public void TestEnumerator()
+        {
+            int j = 0;
+            foreach (int i in _cowList1)
+            {
+                switch (j)
+                {
+                case 0:
+                    Assert.AreEqual(3, i);
+                    break;
+                case 1:
+                    Assert.AreEqual(4, i);
+                    break;
+                case 2:
+                    Assert.AreEqual(2, i);
+                    break;
+                default:
+                    Assert.IsTrue(false);
+                    break;
+                }
+                j++;
+            }
+        }
+
+        [Test]
+        public void TestEquals()
+        {
+            CowList<int> equalList = new CowList<int>();
+            equalList.Add(3);
+            equalList.Add(4);
+            equalList.Add(2);
+            Assert.AreEqual(equalList, _cowList1);
+        }
     }
 }
