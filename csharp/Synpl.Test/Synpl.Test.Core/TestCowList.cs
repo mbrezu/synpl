@@ -144,5 +144,12 @@ namespace Synpl.Test.Core
             equalList.Add(2);
             Assert.AreEqual(equalList, _cowList1);
         }
+
+        [Test]
+        public void TestConstructorLiteral()
+        {
+            CowList<int> literal = new CowList<int>(3, 4, 2);
+            Assert.AreEqual(_cowList1, literal);
+        }
     }
 }

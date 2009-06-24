@@ -15,9 +15,6 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-// TODO: need to replace the List<T> with a CowList<T>
-// that has a fast GetRange operation (because we do that a lot).
-
 using System;
 using Synpl.Core;
 using System.Collections.Generic;

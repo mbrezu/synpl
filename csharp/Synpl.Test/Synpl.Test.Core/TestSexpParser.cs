@@ -96,11 +96,7 @@ namespace Synpl.Test.Core
             Assert.AreEqual("3", atom.Content);
             
             CowList<int> path = atom.GetPath();
-            CowList<int> expectedPath = new CowList<int>();
-            expectedPath.Add(2);
-            expectedPath.Add(0);
-            expectedPath.Add(2);
-            Assert.AreEqual(expectedPath, path);
+            Assert.AreEqual(new CowList<int>(2, 0, 2), path);
             
             ParseTree ptAtom2 = parseTree.GetNodeAtPath(path);
             Assert.IsTrue(ptAtom2 is ParseTreeAtom);
@@ -110,8 +106,19 @@ namespace Synpl.Test.Core
             Assert.AreEqual(atom.Content, atom2.Content);
         }
 
-        // TODO: Write a test for GetIndexInParent()
+        [Test]
+        public void TestGetIndexInParent()
+        {
+            ParseTree parseTree = GetTree("(map (lambda (x) (* x x)) '(1 2 3 4 5))");
+            ParseTree ptAtom = parseTree.GetNodeAtPath(new CowList<int>(2, 0, 3));
+            Assert.IsTrue(ptAtom is ParseTreeAtom);
+            ParseTreeAtom atom = ptAtom as ParseTreeAtom;
+            Assert.AreEqual(3, atom.GetIndexInParent());
+            Assert.AreEqual(-1, parseTree.GetIndexInParent());
+        }
 
+        // TODO: Write tests for ToString() for ParseTreeAtom, ParseTreeList and ParseTreeQuote
+        
         // TODO: Write a previous sibling/next sibling test.
 
         // TODO: Write a moveup/movedown test.

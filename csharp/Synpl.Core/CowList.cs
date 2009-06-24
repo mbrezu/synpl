@@ -388,6 +388,14 @@ namespace Synpl.Core
             _offset = 0;
             _length = storage.Count;
         }
+
+        public CowList(params T[] args) : this()
+        {
+            foreach (T item in args)
+            {
+                Add(item);
+            }
+        }
         #endregion
 
         #region Destructor
