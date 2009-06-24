@@ -117,13 +117,133 @@ namespace Synpl.Test.Core
             Assert.AreEqual(-1, parseTree.GetIndexInParent());
         }
 
-        // TODO: Write tests for ToString() for ParseTreeAtom, ParseTreeList and ParseTreeQuote
+        [Test]
+        public void TestToString()
+        {
+            ParseTree parseTree = GetTree("(+ 1 2)");
+            Assert.AreEqual("[ParseTree: StartPosition=0, EndPosition=7, SubTrees=3]",
+                            parseTree.ToString());
+        }
+
+        [Test]
+        public void TestPreviousSibling()
+        {
+            ParseTree parseTree = GetTree("(map (lambda (x) (* x x)) '(1 2 3 4 5))");
+            ParseTree ptAtom = parseTree.GetNodeAtPath(new CowList<int>(2, 0, 3));
+            Assert.IsTrue(ptAtom is ParseTreeAtom);
+            ParseTreeAtom atom = ptAtom as ParseTreeAtom;
+            ParseTree ptPrevAtom = atom.GetPreviousSibling();
+            Assert.IsTrue(ptPrevAtom is ParseTreeAtom);
+            ParseTreeAtom prevAtom = ptPrevAtom as ParseTreeAtom;
+            Assert.AreEqual("3", prevAtom.Content);
+            Assert.AreEqual(32, prevAtom.StartPosition);
+            Assert.AreEqual(33, prevAtom.EndPosition);
+            Assert.AreEqual(new CowList<int>(2, 0, 2), prevAtom.GetPath());
+        }
+      
+        [Test]
+        public void TestNextSibling()
+        {
+            ParseTree parseTree = GetTree("(map (lambda (x) (* x x)) '(1 2 3 4 5))");
+            ParseTree ptAtom = parseTree.GetNodeAtPath(new CowList<int>(1, 2, 0));
+            Assert.IsTrue(ptAtom is ParseTreeAtom);
+            ParseTreeAtom atom = ptAtom as ParseTreeAtom;
+            ParseTree ptNextAtom = atom.GetNextSibling();
+            Assert.IsTrue(ptNextAtom is ParseTreeAtom);
+            ParseTreeAtom nextAtom = ptNextAtom as ParseTreeAtom;
+            Assert.AreEqual("x", nextAtom.Content);
+            Assert.AreEqual(20, nextAtom.StartPosition);
+            Assert.AreEqual(21, nextAtom.EndPosition);
+            Assert.AreEqual(new CowList<int>(1, 2, 1), nextAtom.GetPath());
+        }
+
+        [Test]
+        public void TestMoveUp()
+        {
+            ParseTree parseTree = GetTree(@"
+(map (lambda (x) (* x x)) 
+     '(1 2 3 4 5))");
+            ParseTree quotedList = parseTree.GetNodeAtPath(new CowList<int>(2));
+            Assert.IsTrue(quotedList is ParseTreeQuote);
+            parseTree = quotedList.MoveUp();
+            // The first newline is missing in 'expectedCode' below because
+            // it is not part of the (map ...) node in the source above,
+            // therefore it will not be rendered when rendering the (map ...)
+            // node as text.
+            string expectedCode = @"(map '(1 2 3 4 5) 
+     (lambda (x) (* x x)))";
+            Assert.AreEqual(expectedCode, parseTree.ToStringAsCode(false));
+        }
         
-        // TODO: Write a previous sibling/next sibling test.
+        [Test]
+        public void TestMoveDown()
+        {
+            ParseTree parseTree = GetTree(@"
+(map (lambda (x) (* x x)) 
+     '(1 2 3 4 5))");
+            ParseTree mapAtom = parseTree.GetNodeAtPath(new CowList<int>(0));
+            parseTree = mapAtom.MoveDown();
+            string expectedCode = @"((lambda (x) (* x x)) map 
+     '(1 2 3 4 5))";
+            Assert.AreEqual(expectedCode, parseTree.ToStringAsCode(false));
+        }
 
-        // TODO: Write a moveup/movedown test.
+        [Test]
+        public void TestInsertChar()
+        {
+            string sample = "()";
+            TextWithChanges text = new TextWithChanges();
+            text.SetText(sample);
+            CowList<Token> tokens = GetTokens(sample);
+            CowList<Token> remainingTokens;
+            ParseTree parseTree;
+            SexpParser.Instance.ParserFunc(tokens, text, out parseTree, out remainingTokens);
+            Assert.AreEqual(0, remainingTokens.Count);
+            Assert.AreEqual("()", parseTree.ToStringAsCode(false));
+            parseTree = parseTree.CharInsertedAt('a', 1);
+            parseTree = parseTree.CharInsertedAt(' ', 2);
+            parseTree = parseTree.CharInsertedAt('b', 3);
+            Assert.AreEqual("(a b)", parseTree.ToStringAsCode(false));
+            parseTree = parseTree.CharInsertedAt('\'', 3);
+            Assert.AreEqual("(a 'b)", parseTree.ToStringAsCode(false));
+            parseTree = parseTree.CharInsertedAt(')', 4);
+            parseTree = parseTree.CharInsertedAt(')', 5);
+            Assert.AreEqual("(a '))b)", parseTree.ToStringAsCode(false));
+            Assert.AreEqual("(a 'b)", parseTree.ToStringAsCode(true));
+            Assert.AreEqual("_(_a_ _'A)A)_b_)", text.TestRender());
+            parseTree = parseTree.CharInsertedAt('(', 4);
+            parseTree = parseTree.CharInsertedAt(' ', 6);
+            Assert.AreEqual("(a '() )b)", parseTree.ToStringAsCode(false));
+            Assert.AreEqual("(a 'b)", parseTree.ToStringAsCode(true));
+            Assert.AreEqual("_(_a_ _'A(A)A A)_b_)", text.TestRender());
+            CowList<ParseTree> pathToBTree = parseTree.GetPathForPosition(6);
+            ParseTree quotedTree = pathToBTree[1];
+            parseTree = quotedTree.MoveUp();
+            Assert.AreEqual("('() )b a)", parseTree.ToStringAsCode(false));
+            Assert.AreEqual("('b a)", parseTree.ToStringAsCode(true));
+            Assert.AreEqual("_(_'A(A)A A)_b_ _a_)", text.TestRender());
+            parseTree = parseTree.CharInsertedAt(' ', 6);
+            parseTree = parseTree.CharInsertedAt('(', 5);
+            Assert.AreEqual("('() () b a)", parseTree.ToStringAsCode(false));
+            Assert.AreEqual("('() () b a)", parseTree.ToStringAsCode(true));
+            Assert.AreEqual("_(_'_(_)_ _(_)_ _b_ _a_)", text.TestRender());
+            // Start with this state in the delete char test.
+        }
 
-        // TODO: Write an insert char/delete char test.
+        // TODO: Write an delete char test (start from the marker in the insert char test).
+
+        // TODO: After associating the TextWithChanges with an IAbstractEditor instance,
+        // we need to provide a test implementation of IAbstractEditor, then write tests
+        // against it.
+        //
+        // Alternative: Each ParseTree is associated with the IAbstractEditor instance.
+        // This makes more sense as the parse tree controls both text and editor,
+        // and is controlled by editor. Anyway, to early to tell what's best.
+        //
+        // This will provide a framework to write regression tests. The IAbstractEditor
+        // implementation will need to be able to simulate a real editor - with navigation,
+        // selection, typing text etc. It will be a mock object emulating an interactive
+        // editor.
 
         #region Private Helper Methods
         // The following functions are debugging helpers, they are not

@@ -125,13 +125,10 @@ namespace Synpl.Core
 
         public override string ToString ()
         {
-            return string.Format("[ParseTree: StartPosition={0}, EndPosition={1}, SubTrees={2}, Parent={3}, Parser={4}, Text={5}]", 
+            return string.Format("[ParseTree: StartPosition={0}, EndPosition={1}, SubTrees={2}]", 
                                  StartPosition, 
                                  EndPosition, 
-                                 SubTrees, 
-                                 Parent, 
-                                 Parser, 
-                                 Text);
+                                 SubTrees.Count);
         }
 
         /// <summary>
@@ -239,6 +236,10 @@ namespace Synpl.Core
             return _parent._subTrees[index + 1];
         }
 
+        // TODO: These operations that modify the _text
+        // structure need to be operated on the text in the editor too (if successful).
+        // This means probably that a TextWithChanges instance needs to be associted with a
+        // IAbstractEditor interface.
         public ParseTree MoveUp()
         {
             ParseTree previous = GetPreviousSibling();

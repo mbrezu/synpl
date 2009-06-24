@@ -79,7 +79,10 @@ namespace Synpl.ShellGtk
 			start = selectionStart.Offset;
 			end = selectionEnd.Offset;
 		}
-		
+
+        // TODO: we don't want to be notified of our own changes in the text.
+        // Maybe use a boolean flag that disables relaying of the underlying 
+        // editor events if the changes are triggered by us.
 		public void DeleteText(int position, int length)
 		{
 			TextIter start = _textView.Buffer.GetIterAtOffset(position);
@@ -197,27 +200,29 @@ namespace Synpl.ShellGtk
 
 		private void HandleDeleteRange(object o, DeleteRangeArgs args)
 		{
-			if (TextChanged != null) {		
-				if (_lastSelectionEnd != _lastSelectionStart) {
-					TextChanged(this, new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
-					                                           _lastSelectionStart,
-					                                           _lastSelectionEnd - _lastSelectionStart,
-					                                           _lastSelectionText));
-				}
-				else
-				{
-					_waitForDeletionKey = true;
-				}
-			}			
+			if (_lastSelectionEnd != _lastSelectionStart) {
+                if (TextChanged != null) {      
+					TextChanged(this, 
+                                new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
+                                                         _lastSelectionStart,
+                                                         _lastSelectionEnd - _lastSelectionStart,
+                                                         _lastSelectionText));
+                }           
+			}
+			else
+			{
+				_waitForDeletionKey = true;
+			}
 		}
 
 		private void HandleInsertText(object o, InsertTextArgs args)
 		{
 			if (TextChanged != null) {
-				TextChanged(this, new TextChangedEventArgs(TextChangedEventArgs.OperationType.Insertion,
-				                                           args.Pos.Offset,
-				                                           args.Length,
-				                                           args.Text));
+				TextChanged(this, 
+                            new TextChangedEventArgs(TextChangedEventArgs.OperationType.Insertion,
+                                                     args.Pos.Offset,
+                                                     args.Length,
+                                                     args.Text));
 			}						
 		}
 		#endregion
