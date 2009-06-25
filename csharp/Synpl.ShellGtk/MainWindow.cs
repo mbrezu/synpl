@@ -23,12 +23,10 @@ using System.Collections.Generic;
 
 namespace Synpl.ShellGtk
 {
-
 	public partial class MainWindow: Gtk.Window
 	{	
 
 		#region Private Storage
-		private TextView _textView;
 		private GtkTextViewEditor _editorWrapper;
 		#endregion
 		
@@ -37,9 +35,9 @@ namespace Synpl.ShellGtk
 		{
 			Build();
 			ConfigureTextView();
-			_editorWrapper = new GtkTextViewEditor(_textView);
+			_editorWrapper = new GtkTextViewEditor(txtEditor);
 			_editorWrapper.TextChanged += HandleTextChanged;
-			_textView.KeyReleaseEvent += HandleKeyReleaseEvent;
+			txtEditor.KeyReleaseEvent += HandleKeyReleaseEvent;
 			ShowAll();
 		}
 		#endregion
@@ -55,12 +53,10 @@ namespace Synpl.ShellGtk
 		#region Private Helper Methods
 		private void ConfigureTextView()
 		{
-			_textView = new TextView();
 			FontDescription fontDescription = new FontDescription();
 			fontDescription.Family = "Bitstream Vera Sans Mono";
 			fontDescription.AbsoluteSize = 15000;
-			_textView.ModifyFont(fontDescription);
-			Add(_textView);
+			txtEditor.ModifyFont(fontDescription);
 		}
 		#endregion
 		
@@ -79,6 +75,11 @@ namespace Synpl.ShellGtk
 			hints.Add(new FormattingHint(8, 12, "comment"));
 			_editorWrapper.RequestFormatting(0, _editorWrapper.Length, hints);
 		}
+
+        protected virtual void OnExitActionActivated (object sender, System.EventArgs e)
+        {
+            Application.Quit();
+        }       
 		#endregion
-	}
+    }
 }

@@ -13,12 +13,73 @@ namespace Synpl.ShellGtk {
     
     public partial class MainWindow {
         
+        private Gtk.UIManager UIManager;
+        
+        private Gtk.Action FileAction;
+        
+        private Gtk.Action ExitAction;
+        
+        private Gtk.VBox vbox2;
+        
+        private Gtk.MenuBar menubar3;
+        
+        private Gtk.ScrolledWindow GtkScrolledWindow;
+        
+        private Gtk.TextView txtEditor;
+        
+        private Gtk.Statusbar statusbar2;
+        
         protected virtual void Build() {
             Stetic.Gui.Initialize(this);
             // Widget Synpl.ShellGtk.MainWindow
+            this.UIManager = new Gtk.UIManager();
+            Gtk.ActionGroup w1 = new Gtk.ActionGroup("Default");
+            this.FileAction = new Gtk.Action("FileAction", Mono.Unix.Catalog.GetString("File"), null, null);
+            this.FileAction.ShortLabel = Mono.Unix.Catalog.GetString("File");
+            w1.Add(this.FileAction, null);
+            this.ExitAction = new Gtk.Action("ExitAction", Mono.Unix.Catalog.GetString("Exit"), null, "gtk-quit");
+            this.ExitAction.ShortLabel = Mono.Unix.Catalog.GetString("Exit");
+            w1.Add(this.ExitAction, null);
+            this.UIManager.InsertActionGroup(w1, 0);
+            this.AddAccelGroup(this.UIManager.AccelGroup);
             this.Name = "Synpl.ShellGtk.MainWindow";
             this.Title = Mono.Unix.Catalog.GetString("MainWindow");
             this.WindowPosition = ((Gtk.WindowPosition)(4));
+            // Container child Synpl.ShellGtk.MainWindow.Gtk.Container+ContainerChild
+            this.vbox2 = new Gtk.VBox();
+            this.vbox2.Name = "vbox2";
+            this.vbox2.Spacing = 6;
+            // Container child vbox2.Gtk.Box+BoxChild
+            this.UIManager.AddUiFromString("<ui><menubar name='menubar3'><menu name='FileAction' action='FileAction'><menuitem name='ExitAction' action='ExitAction'/></menu></menubar></ui>");
+            this.menubar3 = ((Gtk.MenuBar)(this.UIManager.GetWidget("/menubar3")));
+            this.menubar3.Name = "menubar3";
+            this.vbox2.Add(this.menubar3);
+            Gtk.Box.BoxChild w2 = ((Gtk.Box.BoxChild)(this.vbox2[this.menubar3]));
+            w2.Position = 0;
+            w2.Expand = false;
+            w2.Fill = false;
+            // Container child vbox2.Gtk.Box+BoxChild
+            this.GtkScrolledWindow = new Gtk.ScrolledWindow();
+            this.GtkScrolledWindow.Name = "GtkScrolledWindow";
+            this.GtkScrolledWindow.ShadowType = ((Gtk.ShadowType)(1));
+            // Container child GtkScrolledWindow.Gtk.Container+ContainerChild
+            this.txtEditor = new Gtk.TextView();
+            this.txtEditor.CanFocus = true;
+            this.txtEditor.Name = "txtEditor";
+            this.GtkScrolledWindow.Add(this.txtEditor);
+            this.vbox2.Add(this.GtkScrolledWindow);
+            Gtk.Box.BoxChild w4 = ((Gtk.Box.BoxChild)(this.vbox2[this.GtkScrolledWindow]));
+            w4.Position = 1;
+            // Container child vbox2.Gtk.Box+BoxChild
+            this.statusbar2 = new Gtk.Statusbar();
+            this.statusbar2.Name = "statusbar2";
+            this.statusbar2.Spacing = 6;
+            this.vbox2.Add(this.statusbar2);
+            Gtk.Box.BoxChild w5 = ((Gtk.Box.BoxChild)(this.vbox2[this.statusbar2]));
+            w5.Position = 2;
+            w5.Expand = false;
+            w5.Fill = false;
+            this.Add(this.vbox2);
             if ((this.Child != null)) {
                 this.Child.ShowAll();
             }
@@ -26,6 +87,7 @@ namespace Synpl.ShellGtk {
             this.DefaultHeight = 300;
             this.Show();
             this.DeleteEvent += new Gtk.DeleteEventHandler(this.OnDeleteEvent);
+            this.ExitAction.Activated += new System.EventHandler(this.OnExitActionActivated);
         }
     }
 }
