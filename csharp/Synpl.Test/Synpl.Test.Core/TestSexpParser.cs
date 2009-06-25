@@ -230,7 +230,28 @@ namespace Synpl.Test.Core
             // Start with this state in the delete char test.
         }
 
-        // TODO: Write an delete char test (start from the marker in the insert char test).
+        [Test]
+        public void TestDeleteChar()
+        {
+            string sample = "('() () b a)";
+            TextWithChanges text = new TextWithChanges();
+            text.SetText(sample);
+            CowList<Token> tokens = GetTokens(sample);
+            CowList<Token> remainingTokens;
+            ParseTree parseTree;
+            SexpParser.Instance.ParserFunc(tokens, text, out parseTree, out remainingTokens);
+            Assert.AreEqual(0, remainingTokens.Count);
+            parseTree = parseTree.CharDeletedAt(1);
+            Assert.AreEqual("(() () b a)", parseTree.ToStringAsCode(false));
+            parseTree = parseTree.CharDeletedAt(2);
+            Assert.AreEqual("(() () b a)", parseTree.ToStringAsCode(true));
+            Assert.AreEqual("(( () b a)", parseTree.ToStringAsCode(false));
+            Assert.AreEqual("_(_(D)_ _(_)_ _b_ _a_)", text.TestRender());
+            parseTree = parseTree.CharDeletedAt(1);
+            Assert.AreEqual("( () b a)", parseTree.ToStringAsCode(true));
+            Assert.AreEqual("( () b a)", parseTree.ToStringAsCode(false));
+            Assert.AreEqual("_(_ _(_)_ _b_ _a_)", text.TestRender());
+        }
 
         // TODO: After associating the TextWithChanges with an IAbstractEditor instance,
         // we need to provide a test implementation of IAbstractEditor, then write tests
