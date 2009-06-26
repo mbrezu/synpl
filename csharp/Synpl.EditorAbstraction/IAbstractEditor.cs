@@ -30,8 +30,8 @@ namespace Synpl.EditorAbstraction
 		#endregion
 		
 		#region Text Manipulation
-		void InsertText(int position, string text);
-		void DeleteText(int position, int length);	
+		void InsertText(int position, string text, bool inhibitTextChanged);
+		void DeleteText(int position, int length, bool inhibitTextChanged);	
 		string GetText(int position, int length);
 		#endregion
 		

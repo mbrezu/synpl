@@ -32,6 +32,7 @@ namespace Synpl.ShellGtk
 		private string _charBeforeCursor;
 		private string _charAfterCursor;
 		private bool _waitForDeletionKey;
+        private bool _inhibitTextChanged;
 		#endregion
 		
 		#region Constructor
@@ -43,7 +44,8 @@ namespace Synpl.ShellGtk
 		}
 		#endregion
 
-		#region Implementation of IAbstractEditor		
+		#region Implementation of IAbstractEditor
+        
 		public int Length
 		{
 			get 
@@ -64,6 +66,7 @@ namespace Synpl.ShellGtk
 				_textView.Buffer.PlaceCursor(_textView.Buffer.GetIterAtOffset(value));
 			}
 		}
+
 		
 		public string GetText(int position, int length)
 		{
@@ -83,17 +86,32 @@ namespace Synpl.ShellGtk
         // TODO: we don't want to be notified of our own changes in the text.
         // Maybe use a boolean flag that disables relaying of the underlying 
         // editor events if the changes are triggered by us.
-		public void DeleteText(int position, int length)
+		public void DeleteText(int position, int length, bool inhibitTextChanged)
 		{
+            if (inhibitTextChanged) {
+                _inhibitTextChanged = true;
+            }
 			TextIter start = _textView.Buffer.GetIterAtOffset(position);
 			TextIter end = _textView.Buffer.GetIterAtOffset(position + length);
 			_textView.Buffer.Delete(ref start, ref end);
+            if (inhibitTextChanged)
+            {
+                _inhibitTextChanged = false;
+            }
 		}
 		
-		public void InsertText(int position, string text)
+		public void InsertText(int position, string text, bool inhibitTextChanged)
 		{
+            if (inhibitTextChanged)
+            {
+                _inhibitTextChanged = true;
+            }
 			TextIter start = _textView.Buffer.GetIterAtOffset(position);
 			_textView.Buffer.Insert(ref start, text);
+            if (inhibitTextChanged)
+            {
+                _inhibitTextChanged = false;
+            }
 		}
 		
 		public void SetSelection(int start, int end)
@@ -128,7 +146,7 @@ namespace Synpl.ShellGtk
 
 		public event EventHandler<TextChangedEventArgs> TextChanged;
 		#endregion
-		
+
 		#region Private Helper Methods
 		private void ConfigureTags()
 		{
@@ -175,17 +193,16 @@ namespace Synpl.ShellGtk
 			if (_waitForDeletionKey) {
 				_waitForDeletionKey = false;
 				Gdk.EventKey ev = (Gdk.EventKey)args.Args[0];
-				if (ev.Key == Gdk.Key.BackSpace) 
+				if (ev.Key == Gdk.Key.BackSpace && !_inhibitTextChanged)
 				{
-					Console.WriteLine("deleted by backspace");
-					TextChanged(this, new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
-					                                           _lastSelectionStart,
-					                                           1,
-					                                           _charBeforeCursor));		
+                    TextChanged(this, 
+                                new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
+                                                         _lastSelectionStart,
+                                                         1,
+                                                         _charBeforeCursor));
 				}
-				else if (ev.Key == Gdk.Key.Delete)
+				else if (ev.Key == Gdk.Key.Delete && !_inhibitTextChanged)
 				{
-					Console.WriteLine("delete by delete");
 					TextChanged(this, new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
 					                                           _lastSelectionStart,
 					                                           1,
@@ -200,6 +217,10 @@ namespace Synpl.ShellGtk
 
 		private void HandleDeleteRange(object o, DeleteRangeArgs args)
 		{
+            if (_inhibitTextChanged)
+            {
+                return;
+            }
 			if (_lastSelectionEnd != _lastSelectionStart) {
                 if (TextChanged != null) {      
 					TextChanged(this, 
@@ -217,13 +238,17 @@ namespace Synpl.ShellGtk
 
 		private void HandleInsertText(object o, InsertTextArgs args)
 		{
+            if (_inhibitTextChanged)
+            {
+                return;
+            }
 			if (TextChanged != null) {
 				TextChanged(this, 
                             new TextChangedEventArgs(TextChangedEventArgs.OperationType.Insertion,
                                                      args.Pos.Offset,
                                                      args.Length,
                                                      args.Text));
-			}						
+			}
 		}
 		#endregion
 	}	

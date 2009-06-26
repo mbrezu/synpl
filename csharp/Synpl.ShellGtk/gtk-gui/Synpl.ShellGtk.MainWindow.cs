@@ -19,6 +19,22 @@ namespace Synpl.ShellGtk {
         
         private Gtk.Action ExitAction;
         
+        private Gtk.Action EditAction;
+        
+        private Gtk.Action CopyAction;
+        
+        private Gtk.Action CutAction;
+        
+        private Gtk.Action PasteAction;
+        
+        private Gtk.Action NewAction;
+        
+        private Gtk.Action OpenAction;
+        
+        private Gtk.Action SaveAction;
+        
+        private Gtk.Action SaveAsAction;
+        
         private Gtk.VBox vbox2;
         
         private Gtk.MenuBar menubar3;
@@ -34,12 +50,36 @@ namespace Synpl.ShellGtk {
             // Widget Synpl.ShellGtk.MainWindow
             this.UIManager = new Gtk.UIManager();
             Gtk.ActionGroup w1 = new Gtk.ActionGroup("Default");
-            this.FileAction = new Gtk.Action("FileAction", Mono.Unix.Catalog.GetString("File"), null, null);
+            this.FileAction = new Gtk.Action("FileAction", Mono.Unix.Catalog.GetString("_File"), null, null);
             this.FileAction.ShortLabel = Mono.Unix.Catalog.GetString("File");
             w1.Add(this.FileAction, null);
-            this.ExitAction = new Gtk.Action("ExitAction", Mono.Unix.Catalog.GetString("Exit"), null, "gtk-quit");
+            this.ExitAction = new Gtk.Action("ExitAction", Mono.Unix.Catalog.GetString("E_xit"), null, null);
             this.ExitAction.ShortLabel = Mono.Unix.Catalog.GetString("Exit");
             w1.Add(this.ExitAction, null);
+            this.EditAction = new Gtk.Action("EditAction", Mono.Unix.Catalog.GetString("Edit"), null, null);
+            this.EditAction.ShortLabel = Mono.Unix.Catalog.GetString("Edit");
+            w1.Add(this.EditAction, null);
+            this.CopyAction = new Gtk.Action("CopyAction", Mono.Unix.Catalog.GetString("Copy"), null, null);
+            this.CopyAction.ShortLabel = Mono.Unix.Catalog.GetString("Copy");
+            w1.Add(this.CopyAction, null);
+            this.CutAction = new Gtk.Action("CutAction", Mono.Unix.Catalog.GetString("Cut"), null, null);
+            this.CutAction.ShortLabel = Mono.Unix.Catalog.GetString("Cut");
+            w1.Add(this.CutAction, null);
+            this.PasteAction = new Gtk.Action("PasteAction", Mono.Unix.Catalog.GetString("Paste"), null, null);
+            this.PasteAction.ShortLabel = Mono.Unix.Catalog.GetString("Paste");
+            w1.Add(this.PasteAction, null);
+            this.NewAction = new Gtk.Action("NewAction", Mono.Unix.Catalog.GetString("_New"), null, null);
+            this.NewAction.ShortLabel = Mono.Unix.Catalog.GetString("New");
+            w1.Add(this.NewAction, null);
+            this.OpenAction = new Gtk.Action("OpenAction", Mono.Unix.Catalog.GetString("_Open"), null, null);
+            this.OpenAction.ShortLabel = Mono.Unix.Catalog.GetString("Open");
+            w1.Add(this.OpenAction, null);
+            this.SaveAction = new Gtk.Action("SaveAction", Mono.Unix.Catalog.GetString("_Save"), null, null);
+            this.SaveAction.ShortLabel = Mono.Unix.Catalog.GetString("Save");
+            w1.Add(this.SaveAction, null);
+            this.SaveAsAction = new Gtk.Action("SaveAsAction", Mono.Unix.Catalog.GetString("Save _As"), null, null);
+            this.SaveAsAction.ShortLabel = Mono.Unix.Catalog.GetString("Save As");
+            w1.Add(this.SaveAsAction, null);
             this.UIManager.InsertActionGroup(w1, 0);
             this.AddAccelGroup(this.UIManager.AccelGroup);
             this.Name = "Synpl.ShellGtk.MainWindow";
@@ -50,7 +90,7 @@ namespace Synpl.ShellGtk {
             this.vbox2.Name = "vbox2";
             this.vbox2.Spacing = 6;
             // Container child vbox2.Gtk.Box+BoxChild
-            this.UIManager.AddUiFromString("<ui><menubar name='menubar3'><menu name='FileAction' action='FileAction'><menuitem name='ExitAction' action='ExitAction'/></menu></menubar></ui>");
+            this.UIManager.AddUiFromString("<ui><menubar name='menubar3'><menu name='FileAction' action='FileAction'><menuitem name='NewAction' action='NewAction'/><menuitem name='OpenAction' action='OpenAction'/><menuitem name='SaveAction' action='SaveAction'/><menuitem name='SaveAsAction' action='SaveAsAction'/><menuitem name='ExitAction' action='ExitAction'/></menu><menu name='EditAction' action='EditAction'><menuitem name='CopyAction' action='CopyAction'/><menuitem name='CutAction' action='CutAction'/><menuitem name='PasteAction' action='PasteAction'/></menu></menubar></ui>");
             this.menubar3 = ((Gtk.MenuBar)(this.UIManager.GetWidget("/menubar3")));
             this.menubar3.Name = "menubar3";
             this.vbox2.Add(this.menubar3);
@@ -83,11 +123,14 @@ namespace Synpl.ShellGtk {
             if ((this.Child != null)) {
                 this.Child.ShowAll();
             }
-            this.DefaultWidth = 400;
+            this.DefaultWidth = 408;
             this.DefaultHeight = 300;
             this.Show();
             this.DeleteEvent += new Gtk.DeleteEventHandler(this.OnDeleteEvent);
             this.ExitAction.Activated += new System.EventHandler(this.OnExitActionActivated);
+            this.CopyAction.Activated += new System.EventHandler(this.OnCopyActionActivated);
+            this.CutAction.Activated += new System.EventHandler(this.OnCutActionActivated);
+            this.PasteAction.Activated += new System.EventHandler(this.OnPasteActionActivated);
         }
     }
 }

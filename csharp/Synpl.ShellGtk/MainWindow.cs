@@ -27,7 +27,10 @@ namespace Synpl.ShellGtk
 	{	
 
 		#region Private Storage
-		private GtkTextViewEditor _editorWrapper;
+        private IAbstractEditor _editor;
+        // This toy clipboard isn't intended for serious use, I just want to be able
+        // to test the functionality of the GtkTextViewEditor class
+        private string _clipboard = String.Empty;
 		#endregion
 		
 		#region Constructor
@@ -35,8 +38,8 @@ namespace Synpl.ShellGtk
 		{
 			Build();
 			ConfigureTextView();
-			_editorWrapper = new GtkTextViewEditor(txtEditor);
-			_editorWrapper.TextChanged += HandleTextChanged;
+			_editor = new GtkTextViewEditor(txtEditor);
+			_editor.TextChanged += HandleTextChanged;
 			txtEditor.KeyReleaseEvent += HandleKeyReleaseEvent;
 			ShowAll();
 		}
@@ -58,6 +61,13 @@ namespace Synpl.ShellGtk
 			fontDescription.AbsoluteSize = 15000;
 			txtEditor.ModifyFont(fontDescription);
 		}
+
+        private string GetSelectedText()
+        {
+            int selStart, selEnd;
+            _editor.GetSelection(out selStart, out selEnd);
+            return _editor.GetText(selStart, selEnd - selStart);
+        }
 		#endregion
 		
 		#region Form Event Handlers
@@ -73,13 +83,35 @@ namespace Synpl.ShellGtk
 			hints.Add(new FormattingHint(0, 3, "keyword"));
 			hints.Add(new FormattingHint(4, 7, "stringLiteral"));
 			hints.Add(new FormattingHint(8, 12, "comment"));
-			_editorWrapper.RequestFormatting(0, _editorWrapper.Length, hints);
+			_editor.RequestFormatting(0, _editor.Length, hints);
 		}
 
         protected virtual void OnExitActionActivated (object sender, System.EventArgs e)
         {
             Application.Quit();
-        }       
+        }
+       
+        protected virtual void OnCopyActionActivated (object sender, System.EventArgs e)
+        {
+            _clipboard = GetSelectedText();
+            Console.WriteLine(_clipboard);
+        }
+       
+        protected virtual void OnCutActionActivated (object sender, System.EventArgs e)
+        {
+            _clipboard = GetSelectedText();
+            int selStart, selEnd;
+            _editor.GetSelection(out selStart, out selEnd);
+            _editor.DeleteText(selStart, selEnd - selStart, true);
+        }
+
+        protected virtual void OnPasteActionActivated (object sender, System.EventArgs e)
+        {
+            _editor.InsertText(_editor.CursorOffset, _clipboard, true);
+        }
+        
 		#endregion
+
+    
     }
 }
