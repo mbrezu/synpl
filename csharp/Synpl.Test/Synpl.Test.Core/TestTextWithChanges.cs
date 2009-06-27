@@ -109,6 +109,28 @@ namespace Synpl.Test.Core
         }
 
         [Test]
+        public void TestValidateSliceAfterDeletingLastChar()
+        {
+            SetupText();
+            _textWc.DeleteChar(_textWc.GetActualLength() - 1);
+            Assert.AreEqual("_A_n_a_ AbAcDaDr_e_ _m_e_r_eD.",
+                            _textWc.TestRender());
+            _textWc.ValidateSlice(0, _textWc.GetActualLength());
+            Assert.AreEqual("_A_n_a_ _b_c_e_ _m_e_r_e",
+                            _textWc.TestRender());
+        }
+
+        [Test]
+        public void TestValidateSlice2()
+        {
+            _textWc.SetText("a");
+            _textWc.InsertChar(' ', 1);
+            Assert.AreEqual("_aA ", _textWc.TestRender());
+            _textWc.ValidateSlice(0, 1);
+            Assert.AreEqual("_aA ", _textWc.TestRender());
+        }
+
+        [Test]
         public void TestGetSliceWithChanges()
         {
             SetupText();

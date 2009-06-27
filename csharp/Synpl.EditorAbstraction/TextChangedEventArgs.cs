@@ -65,5 +65,17 @@ namespace Synpl.EditorAbstraction
 			_text = text;
 		}
 		#endregion
+
+        #region Public Methods
+        public override string ToString ()
+        {
+            return string.Format("[TextChangedEventArgs: Start={1}, Text='{2}', Length={0}, Operation={3}]", 
+                                 Length, 
+                                 Start, 
+                                 Text, 
+                                 Operation);
+        }
+
+        #endregion
 	}
 }

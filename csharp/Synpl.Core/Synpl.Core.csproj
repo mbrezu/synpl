@@ -44,4 +44,10 @@
     <Compile Include="CowList.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\Synpl.EditorAbstraction\Synpl.EditorAbstraction.csproj">
+      <Project>{7660753C-030E-45B4-BE6A-43A6581E4EF9}</Project>
+      <Name>Synpl.EditorAbstraction</Name>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

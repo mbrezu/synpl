@@ -20,6 +20,8 @@ using Gtk;
 using Pango;
 using Synpl.EditorAbstraction;
 using System.Collections.Generic;
+using Synpl.Core;
+using Synpl.Parser.Sexp;
 
 namespace Synpl.ShellGtk
 {
@@ -28,6 +30,8 @@ namespace Synpl.ShellGtk
 
 		#region Private Storage
         private IAbstractEditor _editor;
+        private TextWithChanges _text;
+        private ParseTree _parseTree;
         // This toy clipboard isn't intended for serious use, I just want to be able
         // to test the functionality of the GtkTextViewEditor class
         private string _clipboard = String.Empty;
@@ -41,15 +45,128 @@ namespace Synpl.ShellGtk
 			_editor = new GtkTextViewEditor(txtEditor);
 			_editor.TextChanged += HandleTextChanged;
 			txtEditor.KeyReleaseEvent += HandleKeyReleaseEvent;
+            _text = new TextWithChanges(_editor);
 			ShowAll();
 		}
+
+        private void CompleteReparse()
+        {
+            CowList<Token> tokens = 
+                SexpParser.Instance.TokenizerFunc(_text.GetCurrentSlice(0, 
+                                                                        _text.GetActualLength()));
+            Console.WriteLine(">>> tokens: {0}", tokens);
+            CowList<Token> remainingTokens = null;
+            try 
+            {
+                SexpParser.Instance.ParserFunc(tokens,
+                                               _text,
+                                               out _parseTree,
+                                               out remainingTokens);
+            }
+            catch (ParseException ex)
+            {
+                Console.WriteLine("Error while parsing: {0}.", ex.Message);
+                return;
+            }
+            if (remainingTokens != null && remainingTokens.Count > 0)
+            {
+                Console.WriteLine("Tokens left in the stream, incomplete parse.");
+            }
+            // HACK: Maybe validate slice should be called by the parser?
+            _text.ValidateSlice(_parseTree.StartPosition, _parseTree.EndPosition);
+            Console.WriteLine(">>> New parse tree:");
+            Console.WriteLine(">>> TWC is: {0}", _text.TestRender());
+            Console.WriteLine(">>> Code tree is:{0}{1}", 
+                              Environment.NewLine,
+                              _parseTree.ToStringAsTree());            
+            Console.WriteLine(">>> Old code is '{0}'.", _parseTree.ToStringAsCode(true));
+            Console.WriteLine(">>> New code is '{0}'.", _parseTree.ToStringAsCode(false));
+        }
+        
+        private void TryParsing(TextChangedEventArgs e)
+        {
+            // TODO: Need an all-text parse tree that encompasses all text (it's a dummy parse tree)
+            // so that we fall back to it when reparsing recursively.
+
+            if (_parseTree == null)
+            {
+                _text.SetText(_editor.GetText(0, _editor.Length));
+                CompleteReparse();
+            }
+            else
+            {
+                if (e.Text.Length > 1)
+                {
+                    // TODO: Support multi-char (copy/paste) operations incrementally.
+                    // TODO: Add multiple char deletion and insertion to parse nodes and TWC.
+                    // TODO: Add unit tests for them.
+                    throw new 
+                        NotImplementedException("Only one-char operations supported incrementally right now.");
+                }
+                switch (e.Operation)
+                {
+                case TextChangedEventArgs.OperationType.Insertion:
+                    _parseTree = _parseTree.CharInsertedAt(e.Text[0], e.Start);
+                    Console.WriteLine(">>> After insert:");
+                    break;
+                case TextChangedEventArgs.OperationType.Deletion:
+                    Console.WriteLine(">>> TWC is: {0}", _text.TestRender());
+                    _parseTree = _parseTree.CharDeletedAt(e.Start);
+                    Console.WriteLine(">>> After delete:");
+                    break;
+                default:
+                    Console.WriteLine("Unknown text change operation.");
+                    break;
+                }
+                Console.WriteLine(">>> Code tree is:{0}{1}", 
+                                  Environment.NewLine,
+                                  _parseTree.ToStringAsTree());
+                Console.WriteLine(">>> TWC is: {1}: {0}", 
+                                  _text.TestRender(),
+                                  _text.GetHashCode());
+                Console.WriteLine(">>> Old code is '{0}'.", _parseTree.ToStringAsCode(true));
+                Console.WriteLine(">>> New code is '{0}'.", _parseTree.ToStringAsCode(false));
+            }
+        }
+
+        private void UpdateTextWithChanges(TextChangedEventArgs e)
+        {
+//            switch (e.Operation)
+//            {
+//            case TextChangedEventArgs.OperationType.Insertion:
+//                Console.WriteLine(">>> Inserting...");
+//                Console.WriteLine(e);
+//                int insertAt = e.Start;
+//                foreach (char ch in e.Text)
+//                {
+//                    _text.InsertChar(ch, insertAt);
+//                    insertAt ++;
+//                }
+//                Console.WriteLine(">>> TWC is now {0}", _text.TestRender());
+//                break;
+//            case TextChangedEventArgs.OperationType.Deletion:
+//                Console.WriteLine(">>> Deleting...");
+//                Console.WriteLine(e);
+//                for (int i = 0; i < e.Text.Length; i++)
+//                {                    
+//                    _text.DeleteChar(e.Start);
+//                }
+//                Console.WriteLine(">>> TWC is now {0}", _text.TestRender());
+//                break;
+//            default:
+//                Console.WriteLine("Unknown text change operation.");
+//                break;
+//            }
+        }
 		#endregion
 
 		#region Editor Event Handlers
 		private void HandleTextChanged(object sender, TextChangedEventArgs e)
 		{
-			Console.WriteLine(">>> {0}", e.Operation);
-			Console.WriteLine("{0}, {1}: \"{2}\"", e.Start, e.Length, e.Text);			                 
+            UpdateTextWithChanges(e);
+            TryParsing(e);
+//			Console.WriteLine(">>> {0}", e.Operation);
+//			Console.WriteLine("{0}, {1}: \"{2}\"", e.Start, e.Length, e.Text);
 		}
 		#endregion
 		
@@ -79,11 +196,12 @@ namespace Synpl.ShellGtk
 
 		void HandleKeyReleaseEvent(object o, KeyReleaseEventArgs args)
 		{
-			List<FormattingHint> hints = new List<FormattingHint>();
-			hints.Add(new FormattingHint(0, 3, "keyword"));
-			hints.Add(new FormattingHint(4, 7, "stringLiteral"));
-			hints.Add(new FormattingHint(8, 12, "comment"));
-			_editor.RequestFormatting(0, _editor.Length, hints);
+            // TODO: Extend this to get some syntax highlighting without parsing?
+//			List<FormattingHint> hints = new List<FormattingHint>();
+//			hints.Add(new FormattingHint(0, 3, "keyword"));
+//			hints.Add(new FormattingHint(4, 7, "stringLiteral"));
+//			hints.Add(new FormattingHint(8, 12, "comment"));
+//			_editor.RequestFormatting(0, _editor.Length, hints);
 		}
 
         protected virtual void OnExitActionActivated (object sender, System.EventArgs e)
@@ -94,7 +212,7 @@ namespace Synpl.ShellGtk
         protected virtual void OnCopyActionActivated (object sender, System.EventArgs e)
         {
             _clipboard = GetSelectedText();
-            Console.WriteLine(_clipboard);
+//            Console.WriteLine(_clipboard);
         }
        
         protected virtual void OnCutActionActivated (object sender, System.EventArgs e)
