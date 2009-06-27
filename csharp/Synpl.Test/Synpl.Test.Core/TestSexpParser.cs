@@ -15,7 +15,7 @@ namespace Synpl.Test.Core
         [Test]
         public void TestTokenizer()
         {
-            Synpl.Core.Parser parser = SexpParser.Instance;
+            Synpl.Core.Parser parser = SexpParser.GetInstance();
             CowList<CharWithPosition> text = EnumerateString("(+ 1 2)");
             CowList<Token> tokens = parser.TokenizerFunc(text);
             
@@ -197,7 +197,7 @@ namespace Synpl.Test.Core
             CowList<Token> tokens = GetTokens(sample);
             CowList<Token> remainingTokens;
             ParseTree parseTree;
-            SexpParser.Instance.ParserFunc(tokens, text, out parseTree, out remainingTokens);
+            SexpParser.GetInstance().ParserFunc(tokens, text, out parseTree, out remainingTokens);
             Assert.AreEqual(0, remainingTokens.Count);
             Assert.AreEqual("()", parseTree.ToStringAsCode(false));
             parseTree = parseTree.CharInsertedAt('a', 1);
@@ -239,7 +239,7 @@ namespace Synpl.Test.Core
             CowList<Token> tokens = GetTokens(sample);
             CowList<Token> remainingTokens;
             ParseTree parseTree;
-            SexpParser.Instance.ParserFunc(tokens, text, out parseTree, out remainingTokens);
+            SexpParser.GetInstance().ParserFunc(tokens, text, out parseTree, out remainingTokens);
             Assert.AreEqual(0, remainingTokens.Count);
             parseTree = parseTree.CharDeletedAt(1);
             Assert.AreEqual("(() () b a)", parseTree.ToStringAsCode(false));
@@ -272,12 +272,12 @@ namespace Synpl.Test.Core
         #pragma warning disable 0169
         private CowList<Token> GetTokens(string sourceCode)
         {
-            return SexpParser.Instance.TokenizerFunc(EnumerateString(sourceCode));
+            return SexpParser.GetInstance().TokenizerFunc(EnumerateString(sourceCode));
         }
         
         private ParseTree GetTree(string sourceCode)
         {
-            Synpl.Core.Parser parser = SexpParser.Instance;
+            Synpl.Core.Parser parser = SexpParser.GetInstance();
             CowList<CharWithPosition> text = EnumerateString(sourceCode);
             CowList<Token> tokens = parser.TokenizerFunc(text);
             TextWithChanges textWithChanges = new TextWithChanges();

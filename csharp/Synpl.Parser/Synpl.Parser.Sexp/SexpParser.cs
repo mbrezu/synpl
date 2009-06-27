@@ -30,34 +30,84 @@ namespace Synpl.Parser.Sexp
             Quote,
             Atom
         };
-        
-        #region Private fields
-        private static SexpParser _instance;
-        #endregion
 
-        #region Properties
-        public static SexpParser Instance {
-            get {
-                if (_instance == null)
-                {
-                    _instance = new SexpParser();
-                }                        
-                return _instance;
-            }
+        public enum ParseType {
+            Global,
+            Sexp
         }
+
+        #region Private Static Storage
+        private static SexpParser _globalInstance = null;
+        private static SexpParser _sexpInstance = null;
+        #endregion
+        
+        #region Public Methods
+        public static SexpParser GetInstance()
+        {
+            return GetInstance(ParseType.Sexp);
+        }
+        
+        public static SexpParser GetInstance(ParseType parseType)
+        {
+            switch (parseType)
+            {
+            case ParseType.Global:
+                if (_globalInstance == null)
+                {
+                    _globalInstance = new SexpParser();
+                    _globalInstance.ParserFunc = ParseGlobal;
+                }
+                return _globalInstance;
+            case ParseType.Sexp:
+                if (_sexpInstance == null)
+                {
+                    _sexpInstance = new SexpParser();
+                    _sexpInstance.ParserFunc = ParseLocal;
+                }
+                return _sexpInstance;
+            default:
+                throw new ArgumentException("Unknown Sexp Parser type.");
+            }                    
+        }
+
         #endregion
         
         #region Constructor
-        private SexpParser() : base(Parse, Tokenize, new DefaultIdGenerator())
+        private SexpParser() : base(ParseLocal, Tokenize, new DefaultIdGenerator())
         {            
         }
         #endregion
 
         #region Parser Implementation
-        public static void Parse(CowList<Token> tokens, 
-                                 TextWithChanges text,
-                                 out ParseTree parseTree,
-                                 out CowList<Token> remainingTokens)
+        public static void ParseGlobal(CowList<Token> tokens, 
+                                      TextWithChanges text,
+                                      out ParseTree parseTree,
+                                      out CowList<Token> remainingTokens)
+        {
+            CowList<ParseTree> trees = new CowList<ParseTree>();
+            remainingTokens = tokens;
+            while (remainingTokens.Count > 0)
+            {
+                ParseTree tree;
+                ParseLocal(remainingTokens, text, out tree, out remainingTokens);
+                trees.Add(tree);
+            }
+            if (trees.Count == 0)
+            {
+                throw new ParseException("No tokens in stream.");
+            }
+            parseTree = new ParseTreeList(tokens[0].StartPosition,
+                                          trees.Last.EndPosition,
+                                          trees,
+                                          SexpParser.GetInstance(ParseType.Global),
+                                          null,
+                                          text);                                              
+        }
+        
+        public static void ParseLocal(CowList<Token> tokens, 
+                                      TextWithChanges text,
+                                      out ParseTree parseTree,
+                                      out CowList<Token> remainingTokens)
         {
             if (tokens.Count == 0)
             {
@@ -67,14 +117,14 @@ namespace Synpl.Parser.Sexp
             {
             case TokenTypes.Quote:
                 ParseTree quotedTree;
-                Parse(tokens.Tail,
-                      text,
-                      out quotedTree,
-                      out remainingTokens);
+                ParseLocal(tokens.Tail,
+                           text,
+                           out quotedTree,
+                           out remainingTokens);
                 parseTree = new ParseTreeQuote(tokens[0].StartPosition,
                                                quotedTree.EndPosition,
                                                quotedTree,
-                                               SexpParser.Instance,
+                                               SexpParser.GetInstance(ParseType.Sexp),
                                                null,
                                                text);
                 return;
@@ -86,7 +136,7 @@ namespace Synpl.Parser.Sexp
                 {
                     ParseTree member;
                     CowList<Token> nextIterTokens;
-                    Parse(iterTokens, text, out member, out nextIterTokens);
+                    ParseLocal(iterTokens, text, out member, out nextIterTokens);
                     iterTokens = nextIterTokens;
                     members.Add(member);
                 }
@@ -98,7 +148,7 @@ namespace Synpl.Parser.Sexp
                 parseTree = new ParseTreeList(tokens[0].StartPosition,
                                               iterTokens[0].EndPosition,
                                               members,
-                                              SexpParser.Instance,
+                                              SexpParser.GetInstance(ParseType.Sexp),
                                               null,
                                               text);                                              
                 return;
@@ -109,7 +159,7 @@ namespace Synpl.Parser.Sexp
                 parseTree = new ParseTreeAtom(tokens[0].StartPosition,
                                               tokens[0].EndPosition,
                                               tokens[0].Content,
-                                              SexpParser.Instance,
+                                              SexpParser.GetInstance(ParseType.Sexp),
                                               null,
                                               text);
                 return;

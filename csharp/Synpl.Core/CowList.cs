@@ -291,6 +291,14 @@ namespace Synpl.Core
         #endregion
 
         #region Properties
+        public T Last
+        {
+            get
+            {
+                return _storage.Storage[_offset + _length - 1];
+            }
+        }
+        
         public T Head
         {
             get

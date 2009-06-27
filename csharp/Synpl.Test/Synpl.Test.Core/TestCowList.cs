@@ -151,5 +151,13 @@ namespace Synpl.Test.Core
             CowList<int> literal = new CowList<int>(3, 4, 2);
             Assert.AreEqual(_cowList1, literal);
         }
+
+        [Test]
+        public void TestLast()
+        {
+            Assert.AreEqual(2, _cowList1.Last);
+            Assert.AreEqual(".", _cowList2.Last);
+            Assert.AreEqual("mo", new CowList<string>("ini", "mini", "mani", "mo").Last);
+        }
     }
 }

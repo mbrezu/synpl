@@ -47,6 +47,10 @@ namespace Synpl.Core
             get {
                 return _parserFunc;
             }
+            set
+            {
+                _parserFunc = value;
+            }
         }
 
         public TokenizerFunction TokenizerFunc {

@@ -26,7 +26,9 @@ using Synpl.Parser.Sexp;
 namespace Synpl.ShellGtk
 {
 	public partial class MainWindow: Gtk.Window
-	{	
+	{
+        // TODO: Common shell code (independent of the UI) should be extracted to
+        // a Synpl.Shell assembly/namespace so it's not duplicated across shells.
 
 		#region Private Storage
         private IAbstractEditor _editor;
@@ -52,16 +54,18 @@ namespace Synpl.ShellGtk
         private void CompleteReparse()
         {
             CowList<Token> tokens = 
-                SexpParser.Instance.TokenizerFunc(_text.GetCurrentSlice(0, 
-                                                                        _text.GetActualLength()));
+                SexpParser.GetInstance(SexpParser.ParseType.Global).
+                    TokenizerFunc(_text.GetCurrentSlice(0,
+                                                        _text.GetActualLength()));
             Console.WriteLine(">>> tokens: {0}", tokens);
             CowList<Token> remainingTokens = null;
             try 
             {
-                SexpParser.Instance.ParserFunc(tokens,
-                                               _text,
-                                               out _parseTree,
-                                               out remainingTokens);
+                SexpParser.GetInstance(SexpParser.ParseType.Global).
+                    ParserFunc(tokens,
+                               _text,
+                               out _parseTree,
+                               out remainingTokens);
             }
             catch (ParseException ex)
             {
@@ -85,33 +89,32 @@ namespace Synpl.ShellGtk
         
         private void TryParsing(TextChangedEventArgs e)
         {
-            // TODO: Need an all-text parse tree that encompasses all text (it's a dummy parse tree)
-            // so that we fall back to it when reparsing recursively.
-
-            if (_parseTree == null)
+            if (_parseTree == null 
+                || _parseTree.EndPosition <= e.Start)
             {
+                Console.WriteLine("Complete Reparse.");
                 _text.SetText(_editor.GetText(0, _editor.Length));
                 CompleteReparse();
             }
             else
             {
-                if (e.Text.Length > 1)
-                {
-                    // TODO: Support multi-char (copy/paste) operations incrementally.
-                    // TODO: Add multiple char deletion and insertion to parse nodes and TWC.
-                    // TODO: Add unit tests for them.
-                    throw new 
-                        NotImplementedException("Only one-char operations supported incrementally right now.");
-                }
+                // TODO: Add multiple char deletion and insertion to parse nodes and TWC.
+                // Also add unit tests for them.
                 switch (e.Operation)
                 {
                 case TextChangedEventArgs.OperationType.Insertion:
-                    _parseTree = _parseTree.CharInsertedAt(e.Text[0], e.Start);
+                    for (int i = 0; i < e.Length; i++)
+                    {
+                        _parseTree = _parseTree.CharInsertedAt(e.Text[i], e.Start + i);
+                    }
                     Console.WriteLine(">>> After insert:");
                     break;
                 case TextChangedEventArgs.OperationType.Deletion:
                     Console.WriteLine(">>> TWC is: {0}", _text.TestRender());
-                    _parseTree = _parseTree.CharDeletedAt(e.Start);
+                    for (int i = 0; i < e.Length; i++)
+                    {
+                        _parseTree = _parseTree.CharDeletedAt(e.Start);
+                    }
                     Console.WriteLine(">>> After delete:");
                     break;
                 default:
