@@ -83,9 +83,6 @@ namespace Synpl.ShellGtk
 			end = selectionEnd.Offset;
 		}
 
-        // TODO: we don't want to be notified of our own changes in the text.
-        // Maybe use a boolean flag that disables relaying of the underlying 
-        // editor events if the changes are triggered by us.
 		public void DeleteText(int position, int length, bool inhibitTextChanged)
 		{
             if (inhibitTextChanged) {
@@ -197,7 +194,7 @@ namespace Synpl.ShellGtk
 				{
                     TextChanged(this, 
                                 new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
-                                                         _lastSelectionStart,
+                                                         _lastSelectionStart - 1,
                                                          1,
                                                          _charBeforeCursor));
 				}
@@ -225,7 +222,7 @@ namespace Synpl.ShellGtk
                 if (TextChanged != null) {      
 					TextChanged(this, 
                                 new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
-                                                         _lastSelectionStart,
+                                                         _lastSelectionStart - 1,
                                                          _lastSelectionEnd - _lastSelectionStart,
                                                          _lastSelectionText));
                 }           
@@ -245,7 +242,7 @@ namespace Synpl.ShellGtk
 			if (TextChanged != null) {
 				TextChanged(this, 
                             new TextChangedEventArgs(TextChangedEventArgs.OperationType.Insertion,
-                                                     args.Pos.Offset,
+                                                     args.Pos.Offset - 1,
                                                      args.Length,
                                                      args.Text));
 			}

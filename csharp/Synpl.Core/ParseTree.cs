@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Synpl.EditorAbstraction;
 
 namespace Synpl.Core
 {
@@ -86,6 +87,7 @@ namespace Synpl.Core
                 return _label;
             }
         }
+
         #endregion
 
         #region Constructor

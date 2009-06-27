@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
+using Synpl.EditorAbstraction;
 
 namespace Synpl.Core
 {
@@ -30,11 +31,18 @@ namespace Synpl.Core
     // Old coordinates are defined as coordinates in the _text (they
     // are affected by both deleted characters and newly added characters).
 
+
+    // TODO: Must be able to save (MD5/SHA1 for the "actual" text, list of changes)
+    // and restore by using a filename and the bytes for the hash and list of changes.
+
+    // TODO: Optimizations: Add "insert range" and "delete range operations,
+    // change the TextChange to allow multiple characters.
 	public class TextWithChanges
 	{
         #region Private Storage
         private CowList<TextChange> _changes;
         private string _text;
+        private IAbstractEditor _editor;
         #endregion
 
         #region Constructor
@@ -43,6 +51,13 @@ namespace Synpl.Core
             _changes = new CowList<TextChange>();
             _text = String.Empty;
 		}
+
+        public TextWithChanges(IAbstractEditor editor)
+        {
+            _changes = new CowList<TextChange>();
+            _editor = editor;
+            _text = _editor.GetText(0, _editor.Length);
+        }
         #endregion
 
         #region Public Methods
@@ -83,6 +98,15 @@ namespace Synpl.Core
 
         public void InsertChar(char ch, int position)
         {
+            InsertChar(ch, position, false);
+        }
+        
+        public void InsertChar(char ch, int position, bool sendToEditor)
+        {
+            if (_editor != null && sendToEditor)
+            {
+                _editor.InsertText(position, "" + ch, true);
+            }
             int oldPosition = ConvertActualPositionToOld(position);
             _text = _text.Substring(0, oldPosition) + ch + _text.Substring(oldPosition);
             // Move all marks one position forward.
@@ -99,6 +123,15 @@ namespace Synpl.Core
 
         public void DeleteChar(int position)
         {
+            DeleteChar(position, false);
+        }
+        
+        public void DeleteChar(int position, bool sendToEditor)
+        {
+            if (_editor != null && sendToEditor)
+            {
+                _editor.DeleteText(position, 1, true);
+            }
             int oldPosition = ConvertActualPositionToOld(position, true);
             // Check if we're actually deleting an insertion; if so, they
             // will cancel themselves out and all changes afterwards will
@@ -174,6 +207,15 @@ namespace Synpl.Core
 
         public void RemoveSliceWithChanges(int start, int end)
         {
+            RemoveSliceWithChanges(start, end, false);
+        }
+
+        public void RemoveSliceWithChanges(int start, int end, bool sendToEditor)
+        {
+            if (_editor != null && sendToEditor)
+            {
+                _editor.DeleteText(start, end - start, true);
+            }
             int oldStart = ConvertActualPositionToOld(start);
             int oldEnd = ConvertActualPositionToOld(end, true);
             CowList<TextChange> newChanges = new CowList<TextChange>();
@@ -214,6 +256,21 @@ namespace Synpl.Core
 
         public void InsertSliceWithChanges(int position, TextWithChanges slice)
         {
+            InsertSliceWithChanges(position, slice, false);
+        }
+        
+        public void InsertSliceWithChanges(int position, TextWithChanges slice, bool sendToEditor)
+        {
+            if (_editor != null && sendToEditor)
+            {
+                CowList<CharWithPosition> sliceText = slice.GetCurrentSlice(0, slice.GetActualLength());
+                StringBuilder sb = new StringBuilder();
+                foreach (CharWithPosition cwp in sliceText)
+                {
+                    sb.Append(cwp.Char);
+                }                
+                _editor.InsertText(position, sb.ToString(), true);
+            }
             int oldPosition = ConvertActualPositionToOld(position);
             CowList<TextChange> newChanges = new CowList<TextChange>();
             // Select changes before the insert position.
@@ -344,9 +401,9 @@ namespace Synpl.Core
             {
                 if (change.Position >= oldEnd)
                 {
-                    deletesBetween.Add(change.Moved(offset));
+                    changesAfter.Add(change.Moved(offset));
                 }
-            }          
+            }
             _changes = changesBefore;
             _changes.AddRange(changesAfter);
 
@@ -354,7 +411,7 @@ namespace Synpl.Core
             foreach (TextChange delete in deletesBetween)
             {
                 int pos = delete.Position + runningOffset;
-                _text = _text.Substring(0, pos) + _text.Substring(pos + 1);
+                _text = _text.Remove(pos, 1);
                 runningOffset -= 1;
             }
         }

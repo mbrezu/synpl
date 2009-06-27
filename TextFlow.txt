@@ -1,0 +1,21 @@
+Text Flow principles:
+
+Text changes have two sources:
+1) the user
+2) the parser
+
+Changes from 1) will be propagated from the abstract editor to the parse tree, 
+which will propagate them to the TWC instance.
+
+Changes from 2) will be propagated by the parse tree to the TWC instance, which will propagate them
+to the abstract editor.
+
+So, there are two flows, respectively:
+
+1) IAbstractEditor - ParseTree - TextWithChanges
+2) ParseTree - TextWithChanges - IAbstractEditor
+
+All code must follow these conventions. If there is a new source for text changes, a new flow (that
+agrees with the existing ones) must be added to this list.
+
+In case 1), if there is no parse tree, the code will flow directly to the text with changes.

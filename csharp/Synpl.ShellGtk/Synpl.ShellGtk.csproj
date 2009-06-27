@@ -65,5 +65,13 @@
       <Project>{7660753C-030E-45B4-BE6A-43A6581E4EF9}</Project>
       <Name>Synpl.EditorAbstraction</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Synpl.Parser\Synpl.Parser.Sexp\Synpl.Parser.Sexp.csproj">
+      <Project>{E0623D9D-5B93-4D4B-B0C0-50A664264C35}</Project>
+      <Name>Synpl.Parser.Sexp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Synpl.Core\Synpl.Core.csproj">
+      <Project>{72DF437D-4699-4D32-B331-03E24F4D4997}</Project>
+      <Name>Synpl.Core</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>
