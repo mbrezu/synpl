@@ -238,10 +238,6 @@ namespace Synpl.Core
             return _parent._subTrees[index + 1];
         }
 
-        // TODO: These operations that modify the _text
-        // structure need to be operated on the text in the editor too (if successful).
-        // This means probably that a TextWithChanges instance needs to be associted with a
-        // IAbstractEditor interface.
         public ParseTree MoveUp()
         {
             ParseTree previous = GetPreviousSibling();
@@ -251,16 +247,16 @@ namespace Synpl.Core
             }
             
             TextWithChanges thisTwcSlice = _text.GetSliceWithChanges(_startPosition, _endPosition);
-            _text.RemoveSliceWithChanges(_startPosition, _endPosition);
+            _text.RemoveSliceWithChanges(_startPosition, _endPosition, true);
             TextWithChanges previousTwcSlice = _text.GetSliceWithChanges(previous._startPosition,
                                                                          previous._endPosition);
-            _text.RemoveSliceWithChanges(previous._startPosition, previous._endPosition);
+            _text.RemoveSliceWithChanges(previous._startPosition, previous._endPosition, true);
             
-            _text.InsertSliceWithChanges(previous._startPosition, thisTwcSlice);
+            _text.InsertSliceWithChanges(previous._startPosition, thisTwcSlice, true);
             int adjustedSelfStartPosition = _startPosition +
                 thisTwcSlice.GetActualLength() -
                     previousTwcSlice.GetActualLength();
-            _text.InsertSliceWithChanges(adjustedSelfStartPosition, previousTwcSlice);
+            _text.InsertSliceWithChanges(adjustedSelfStartPosition, previousTwcSlice, true);
             // Use old version because we don't want extra unparsed
             // characters in any of the parent's children (including the
             // two being swapped) to break the parse.
@@ -280,11 +276,13 @@ namespace Synpl.Core
                 // parsable. We need some kind of MiniPascal or similar to
                 // test it.
                 _text.RemoveSliceWithChanges(previous._startPosition,
-                                             previous._startPosition + thisTwcSlice.GetActualLength());
+                                             previous._startPosition + thisTwcSlice.GetActualLength(),
+                                             true);
                 _text.RemoveSliceWithChanges(adjustedSelfStartPosition,
-                                             _startPosition + previousTwcSlice.GetActualLength());
-                _text.InsertSliceWithChanges(previous._startPosition, previousTwcSlice);
-                _text.InsertSliceWithChanges(_startPosition, thisTwcSlice);
+                                             _startPosition + previousTwcSlice.GetActualLength(),
+                                             true);
+                _text.InsertSliceWithChanges(previous._startPosition, previousTwcSlice, true);
+                _text.InsertSliceWithChanges(_startPosition, thisTwcSlice, true);
                 return null;
             }
         }

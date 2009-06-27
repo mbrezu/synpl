@@ -27,6 +27,14 @@ namespace Synpl.ShellGtk
 {
 	public partial class MainWindow: Gtk.Window
 	{
+        // TODO: Mock editor for testing.
+        // TODO: Selection by trees and subtrees.
+        // TODO: Moveup/movedown trees in the editor.
+        // TODO: Pretty printing? :-) This needs some design work.
+        // TODO: Indent (first tree on current line at the same indentation
+        // as the previous node, or slightly indented with regard to the parent
+        // if there is no previous node.
+        
         // TODO: Common shell code (independent of the UI) should be extracted to
         // a Synpl.Shell assembly/namespace so it's not duplicated across shells.
 

@@ -253,19 +253,6 @@ namespace Synpl.Test.Core
             Assert.AreEqual("_(_ _(_)_ _b_ _a_)", text.TestRender());
         }
 
-        // TODO: After associating the TextWithChanges with an IAbstractEditor instance,
-        // we need to provide a test implementation of IAbstractEditor, then write tests
-        // against it.
-        //
-        // Alternative: Each ParseTree is associated with the IAbstractEditor instance.
-        // This makes more sense as the parse tree controls both text and editor,
-        // and is controlled by editor. Anyway, to early to tell what's best.
-        //
-        // This will provide a framework to write regression tests. The IAbstractEditor
-        // implementation will need to be able to simulate a real editor - with navigation,
-        // selection, typing text etc. It will be a mock object emulating an interactive
-        // editor.
-
         #region Private Helper Methods
         // The following functions are debugging helpers, they are not
         // used normally.
