@@ -180,6 +180,24 @@ namespace Synpl.Core
             return position >= _startPosition && position < _endPosition;
         }
 
+        // TODO: Add unit tests.
+        public ParseTree HasEndPosition(int position)
+        {
+            if (position == _endPosition)
+            {
+                return this;
+            }
+            foreach (ParseTree tree in _subTrees)
+            {
+                ParseTree pt = tree.HasEndPosition(position);
+                if (pt != null)
+                {
+                    return pt;
+                }
+            }
+            return null;
+        }
+
         public CowList<ParseTree> GetPathForPosition(int position)
         {            
             if (!Contains(position)) {
@@ -341,10 +359,6 @@ namespace Synpl.Core
             return nodeAffected.ReparseAndValidateRecursively();
         }
 
-        // The first node that doesn't parse after a delete should be
-        // marked with squigglies or similar marks to show that something
-        // is missing there and the editor parser doesn't use the visible
-        // text.
         public ParseTree CharDeletedAt(int position)
         {
             CowList<ParseTree> path = GetPathForPosition(position);

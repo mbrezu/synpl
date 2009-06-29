@@ -45,6 +45,15 @@ namespace Synpl.Core
         private IAbstractEditor _editor;
         #endregion
 
+        #region Properties
+        // FIXME: text.Changes should return a readonly collection.
+        public CowList<TextChange> Changes {
+            get {
+                return _changes;
+            }
+        }
+        #endregion
+
         #region Constructor
 		public TextWithChanges()
 		{
@@ -70,6 +79,25 @@ namespace Synpl.Core
         public ReadOnlyCollection<TextChange> GetChanges()
         {
             return new ReadOnlyCollection<TextChange>(_changes);
+        }
+
+        // TODO: Add unit tests for this method.
+        // TODO: Or delete it.
+        public int ConvertOldPositionToActual(int oldPosition)
+        {
+            int result = oldPosition;
+            foreach (TextChange tc in _changes)
+            {
+                if (tc.Position > oldPosition)
+                {
+                    break;
+                }
+                else if (tc.IsDeletion && tc.Position < oldPosition)
+                {
+                    result --;
+                }
+            }
+            return result;
         }
         
         public int ConvertActualPositionToOld(int actualPosition, bool findEnd)
@@ -133,6 +161,8 @@ namespace Synpl.Core
                 _editor.DeleteText(position, 1, true);
             }
             int oldPosition = ConvertActualPositionToOld(position, true);
+            Console.WriteLine("!!!! position: {0}", position);
+            Console.WriteLine("!!!! oldPosition: {0}", oldPosition);
             // Check if we're actually deleting an insertion; if so, they
             // will cancel themselves out and all changes afterwards will
             // be pulled back one character.

@@ -33,16 +33,16 @@ namespace Synpl.EditorAbstraction
 				return _start;
 			}
 		}
+        public int End {
+            get {
+                return _end;
+            }
+        }       
 		public string Hint {
 			get {
 				return _hint;
 			}
 		}
-		public int End {
-			get {
-				return _end;
-			}
-		}		
 		#endregion
 		
 		#region Constructor
@@ -53,5 +53,12 @@ namespace Synpl.EditorAbstraction
 			_hint = hint;
 		}
 		#endregion
+
+        #region Public Methods
+        public override string ToString ()
+        {
+            return string.Format("[FormattingHint: Start={0}, End={1}, Hint={2}]", Start, End, Hint);
+        }
+        #endregion
 	}
 }

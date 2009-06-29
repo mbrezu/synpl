@@ -148,6 +148,10 @@ namespace Synpl.ShellGtk
 		private void ConfigureTags()
 		{
 			// These values should be read from a configuration file.
+            TextTag addedTextTag = new TextTagWorkaround("addedText", _textView.Buffer.TagTable);
+            addedTextTag.Background = "#44ff44";
+            TextTag deleteTextTag = new TextTagWorkaround("brokenByDelete", _textView.Buffer.TagTable);
+            deleteTextTag.Underline = Pango.Underline.Error;
 			TextTag keywordTag = new TextTagWorkaround("keyword", _textView.Buffer.TagTable);
 			keywordTag.Foreground = "#ff0000";
 			TextTag commentTag = new TextTagWorkaround("comment", _textView.Buffer.TagTable);
@@ -222,7 +226,7 @@ namespace Synpl.ShellGtk
                 if (TextChanged != null) {      
 					TextChanged(this, 
                                 new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
-                                                         _lastSelectionStart - 1,
+                                                         _lastSelectionStart,
                                                          _lastSelectionEnd - _lastSelectionStart,
                                                          _lastSelectionText));
                 }           
@@ -242,7 +246,7 @@ namespace Synpl.ShellGtk
 			if (TextChanged != null) {
 				TextChanged(this, 
                             new TextChangedEventArgs(TextChangedEventArgs.OperationType.Insertion,
-                                                     args.Pos.Offset - 1,
+                                                     args.Pos.Offset,
                                                      args.Length,
                                                      args.Text));
 			}

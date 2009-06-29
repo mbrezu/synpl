@@ -27,6 +27,8 @@ namespace Synpl.ShellGtk
 {
 	public partial class MainWindow: Gtk.Window
 	{
+        // TODO: Color in green the newly added text. Red squigglies for the
+        // text that became invalid because of deleted characters.
         // TODO: Mock editor for testing.
         // TODO: Selection by trees and subtrees.
         // TODO: Moveup/movedown trees in the editor.
@@ -101,7 +103,14 @@ namespace Synpl.ShellGtk
                 || _parseTree.EndPosition <= e.Start)
             {
                 Console.WriteLine("Complete Reparse.");
-                _text.SetText(_editor.GetText(0, _editor.Length));
+                _text.SetText("");
+                string text = _editor.GetText(0, _editor.Length);
+                int pos = 0;
+                foreach (char ch in text)
+                {
+                    _text.InsertChar(ch, pos);
+                    pos ++;
+                }
                 CompleteReparse();
             }
             else
@@ -169,6 +178,70 @@ namespace Synpl.ShellGtk
 //                break;
 //            }
         }
+
+
+        private void ListParseTrees(ParseTree pt, CowList<ParseTree> acc)
+        {
+            acc.Add(pt);
+            foreach (ParseTree tree in pt.SubTrees)
+            {
+                ListParseTrees(tree, acc);
+            }
+        }
+
+        // TODO: Optimization: shouldn't recolor all text when the text changes.
+        private void UpdateFormatting()
+        {
+            CowList<TextChange> changes = _text.Changes;
+            List<FormattingHint> hints = new List<FormattingHint>();
+            List<int> deletePositions = new List<int>();
+            Console.WriteLine(">>> Formatting hints:");
+            foreach(TextChange change in changes)
+            {
+                if (!change.IsDeletion)
+                {
+                    FormattingHint hint = new FormattingHint(change.Position, 
+                                                             change.Position + 1, 
+                                                             "addedText");
+                    hints.Add(hint);
+                    Console.WriteLine(hint);
+                }
+                else
+                {
+                    deletePositions.Add(_text.ConvertOldPositionToActual(change.Position));
+                }
+            }
+            Dictionary<ParseTree, int> treesToHighlight = new Dictionary<ParseTree, int>();
+            foreach (int pos in deletePositions)
+            {
+                ParseTree pt = _parseTree.HasEndPosition(pos);
+                if (pt == null)
+                {
+                    CowList<ParseTree> path = _parseTree.GetPathForPosition(pos);
+                    if (path.Count > 0)
+                    {
+                        pt = path.Last;
+                    }
+                    else
+                    {
+                        pt = _parseTree;
+                    }
+                }
+                if (!treesToHighlight.ContainsKey(pt))
+                {
+                    treesToHighlight.Add(pt, 1);
+                }
+            }
+            foreach (ParseTree pt in treesToHighlight.Keys)
+            {
+                FormattingHint hint = new FormattingHint(pt.StartPosition,
+                                                         pt.EndPosition,
+                                                         "brokenByDelete");
+                Console.WriteLine(hint);
+                hints.Add(hint);
+            }
+            _editor.RequestFormatting(0, _editor.Length, hints);
+        }
 		#endregion
 
 		#region Editor Event Handlers
@@ -176,6 +249,7 @@ namespace Synpl.ShellGtk
 		{
             UpdateTextWithChanges(e);
             TryParsing(e);
+            UpdateFormatting();
 //			Console.WriteLine(">>> {0}", e.Operation);
 //			Console.WriteLine("{0}, {1}: \"{2}\"", e.Start, e.Length, e.Text);
 		}
