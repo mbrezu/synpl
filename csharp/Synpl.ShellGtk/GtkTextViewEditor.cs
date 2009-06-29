@@ -191,12 +191,13 @@ namespace Synpl.ShellGtk
 
 		void HandleKeyReleaseEvent(object o, KeyReleaseEventArgs args)
 		{
-			if (_waitForDeletionKey) {
+			if (_waitForDeletionKey) 
+            {
 				_waitForDeletionKey = false;
 				Gdk.EventKey ev = (Gdk.EventKey)args.Args[0];
 				if (ev.Key == Gdk.Key.BackSpace && !_inhibitTextChanged)
 				{
-                    TextChanged(this, 
+                    TextChanged(this,
                                 new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
                                                          _lastSelectionStart - 1,
                                                          1,
@@ -204,16 +205,17 @@ namespace Synpl.ShellGtk
 				}
 				else if (ev.Key == Gdk.Key.Delete && !_inhibitTextChanged)
 				{
-					TextChanged(this, new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
-					                                           _lastSelectionStart,
-					                                           1,
-					                                           _charAfterCursor));		
-				}					
+					TextChanged(this, 
+                                new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
+                                                         _lastSelectionStart,
+                                                         1,
+                                                         _charAfterCursor));
+				}
 			}
 			SaveState();
 			GetSelection(out _lastSelectionStart, out _lastSelectionEnd);
-			_lastSelectionText = GetText(_lastSelectionStart, _lastSelectionEnd - _lastSelectionStart);
-			
+			_lastSelectionText = GetText(_lastSelectionStart,
+                                         _lastSelectionEnd - _lastSelectionStart);
 		}
 
 		private void HandleDeleteRange(object o, DeleteRangeArgs args)
@@ -222,14 +224,16 @@ namespace Synpl.ShellGtk
             {
                 return;
             }
-			if (_lastSelectionEnd != _lastSelectionStart) {
-                if (TextChanged != null) {      
-					TextChanged(this, 
+			if (_lastSelectionEnd != _lastSelectionStart)
+            {
+                if (TextChanged != null)
+                {
+					TextChanged(this,
                                 new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
                                                          _lastSelectionStart,
                                                          _lastSelectionEnd - _lastSelectionStart,
                                                          _lastSelectionText));
-                }           
+                }
 			}
 			else
 			{

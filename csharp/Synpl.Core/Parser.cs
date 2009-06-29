@@ -33,16 +33,9 @@ namespace Synpl.Core
         #region Private Storage
         private TokenizerFunction _tokenizerFunc;
         private ParserFunction _parserFunc;
-        private IIdGenerator _idGenerator;
         #endregion
 
         #region Properties
-        public IIdGenerator IdGenerator {
-            get {
-                return _idGenerator;
-            }
-        }
-
         public ParserFunction ParserFunc {
             get {
                 return _parserFunc;
@@ -62,20 +55,14 @@ namespace Synpl.Core
 
         #region Constructor
         public Parser(ParserFunction parserFunc, 
-                      TokenizerFunction tokenizerFunc, 
-                      IIdGenerator idGenerator)
+                      TokenizerFunction tokenizerFunc)
         {
             _parserFunc = parserFunc;
             _tokenizerFunc = tokenizerFunc;
-            _idGenerator = idGenerator;
         }
         #endregion
 
         #region Public Methods
-        public int NewId()
-        {
-            return _idGenerator.NewId();
-        }
         #endregion
     }
 }

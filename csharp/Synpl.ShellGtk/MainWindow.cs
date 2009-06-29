@@ -27,8 +27,6 @@ namespace Synpl.ShellGtk
 {
 	public partial class MainWindow: Gtk.Window
 	{
-        // TODO: Color in green the newly added text. Red squigglies for the
-        // text that became invalid because of deleted characters.
         // TODO: Mock editor for testing.
         // TODO: Selection by trees and subtrees.
         // TODO: Moveup/movedown trees in the editor.
@@ -192,7 +190,7 @@ namespace Synpl.ShellGtk
         // TODO: Optimization: shouldn't recolor all text when the text changes.
         private void UpdateFormatting()
         {
-            CowList<TextChange> changes = _text.Changes;
+            IList<TextChange> changes = _text.Changes;
             List<FormattingHint> hints = new List<FormattingHint>();
             List<int> deletePositions = new List<int>();
             Console.WriteLine(">>> Formatting hints:");
@@ -214,6 +212,10 @@ namespace Synpl.ShellGtk
             Dictionary<ParseTree, int> treesToHighlight = new Dictionary<ParseTree, int>();
             foreach (int pos in deletePositions)
             {
+                // FIXME: Ambiguity: the deleted character may indeed
+                // belong to the tree pt below (result of HasEndPosition)
+                // or to its parent. Posible resolution: check if the old version
+                // of pt parses.
                 ParseTree pt = _parseTree.HasEndPosition(pos);
                 if (pt == null)
                 {

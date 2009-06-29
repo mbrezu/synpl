@@ -253,6 +253,20 @@ namespace Synpl.Test.Core
             Assert.AreEqual("_(_ _(_)_ _b_ _a_)", text.TestRender());
         }
 
+        [Test]
+        public void TestHasEndPosition()
+        {
+            ParseTree parseTree = GetTree(@"
+(map (lambda (x) (* x x)) 
+     '(1 2 3 4 5))");
+            ParseTree lambdaAtom = parseTree.HasEndPosition(13);
+            Assert.IsTrue(lambdaAtom is ParseTreeAtom);
+            Assert.AreEqual(7, lambdaAtom.StartPosition);
+            Assert.AreEqual(13, lambdaAtom.EndPosition);
+            Assert.AreEqual("lambda", ((ParseTreeAtom)lambdaAtom).Content);
+            Assert.AreEqual(null, parseTree.HasEndPosition(14));
+        }
+
         #region Private Helper Methods
         // The following functions are debugging helpers, they are not
         // used normally.

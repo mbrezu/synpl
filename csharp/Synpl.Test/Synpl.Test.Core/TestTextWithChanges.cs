@@ -161,6 +161,17 @@ namespace Synpl.Test.Core
             Assert.AreEqual("_A_n_a_ AbAcDaDr_e_ _m_e_rDe_.", _textWc.TestRender());
         }
 
+        [Test]
+        public void TestConvertOldPositionToActual()
+        {
+            SetupText();
+            Assert.AreEqual("_A_n_a_ AbAcDaDr_e_ _m_e_r_e_.", _textWc.TestRender());
+            Assert.AreEqual(6, _textWc.ConvertActualPositionToOld(6));
+            Assert.AreEqual(9, _textWc.ConvertActualPositionToOld(7));
+            Assert.AreEqual(10, _textWc.ConvertActualPositionToOld(8));
+            Assert.AreEqual(11, _textWc.ConvertActualPositionToOld(9));
+        }
+
         #region Private Helper Methods
         // The following functions are debugging helpers, they are not
         // used normally.

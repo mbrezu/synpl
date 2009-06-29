@@ -22,7 +22,7 @@ using System.Text;
 
 namespace Synpl.Parser.Sexp
 {
-    public class SexpParser : Synpl.Core.Parser, IIdGenerator
+    public class SexpParser : Synpl.Core.Parser
     {
         public enum TokenTypes {
             OpenParen = 1,
@@ -73,7 +73,7 @@ namespace Synpl.Parser.Sexp
         #endregion
         
         #region Constructor
-        private SexpParser() : base(ParseLocal, Tokenize, new DefaultIdGenerator())
+        private SexpParser() : base(ParseLocal, Tokenize)
         {            
         }
         #endregion

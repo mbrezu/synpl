@@ -31,7 +31,6 @@ namespace Synpl.Core
         private Parser _parser;
         private ParseTree _parent;
         private TextWithChanges _text;
-        private int _id;
         private string _label;
         #endregion
 
@@ -76,12 +75,6 @@ namespace Synpl.Core
             }
         }
 
-        public int Id {
-            get {
-                return _id;
-            }
-        }
-
         public string Label {
             get {
                 return _label;
@@ -105,7 +98,6 @@ namespace Synpl.Core
             _parser = parser;
             _parent = parent;
             _text = text;
-            _id = parser.NewId();
             _label = label;
             foreach (ParseTree node in _subTrees)
             {
@@ -180,7 +172,6 @@ namespace Synpl.Core
             return position >= _startPosition && position < _endPosition;
         }
 
-        // TODO: Add unit tests.
         public ParseTree HasEndPosition(int position)
         {
             if (position == _endPosition)
@@ -228,7 +219,7 @@ namespace Synpl.Core
             }
             for (int i = 0; i < _parent._subTrees.Count; i++)
             {
-                if (_parent._subTrees[i].Id == _id)
+                if (_parent._subTrees[i] == this)
                 {
                     return i;
                 }

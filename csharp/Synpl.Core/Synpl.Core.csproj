@@ -39,8 +39,6 @@
     <Compile Include="ParseException.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="ParseTree.cs" />
-    <Compile Include="IIdGenerator.cs" />
-    <Compile Include="DefaultIdGenerator.cs" />
     <Compile Include="CowList.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
