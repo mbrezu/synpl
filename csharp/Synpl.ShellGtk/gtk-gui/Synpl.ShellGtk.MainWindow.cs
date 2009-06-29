@@ -35,6 +35,30 @@ namespace Synpl.ShellGtk {
         
         private Gtk.Action SaveAsAction;
         
+        private Gtk.Action SelectAction;
+        
+        private Gtk.Action ExtendToParentAction;
+        
+        private Gtk.Action SelectPreviousSiblingAction;
+        
+        private Gtk.Action SelectNextSiblingAction;
+        
+        private Gtk.Action IncludePreviousSiblingAction;
+        
+        private Gtk.Action IncludeNextSiblingAction;
+        
+        private Gtk.Action RestrictChildAction;
+        
+        private Gtk.Action TestAction;
+        
+        private Gtk.Action Insert1Action;
+        
+        private Gtk.Action Insert2Action;
+        
+        private Gtk.Action MoveUpAction1;
+        
+        private Gtk.Action MoveDownAction1;
+        
         private Gtk.VBox vbox2;
         
         private Gtk.MenuBar menubar3;
@@ -80,6 +104,42 @@ namespace Synpl.ShellGtk {
             this.SaveAsAction = new Gtk.Action("SaveAsAction", Mono.Unix.Catalog.GetString("Save _As"), null, null);
             this.SaveAsAction.ShortLabel = Mono.Unix.Catalog.GetString("Save As");
             w1.Add(this.SaveAsAction, null);
+            this.SelectAction = new Gtk.Action("SelectAction", Mono.Unix.Catalog.GetString("Select"), null, null);
+            this.SelectAction.ShortLabel = Mono.Unix.Catalog.GetString("Select");
+            w1.Add(this.SelectAction, null);
+            this.ExtendToParentAction = new Gtk.Action("ExtendToParentAction", Mono.Unix.Catalog.GetString("Extend To Parent"), null, null);
+            this.ExtendToParentAction.ShortLabel = Mono.Unix.Catalog.GetString("Extend To Parent");
+            w1.Add(this.ExtendToParentAction, null);
+            this.SelectPreviousSiblingAction = new Gtk.Action("SelectPreviousSiblingAction", Mono.Unix.Catalog.GetString("Select Previous Sibling"), null, null);
+            this.SelectPreviousSiblingAction.ShortLabel = Mono.Unix.Catalog.GetString("Select Previous Sibling");
+            w1.Add(this.SelectPreviousSiblingAction, null);
+            this.SelectNextSiblingAction = new Gtk.Action("SelectNextSiblingAction", Mono.Unix.Catalog.GetString("Select Next Sibling"), null, null);
+            this.SelectNextSiblingAction.ShortLabel = Mono.Unix.Catalog.GetString("Select Next Sibling");
+            w1.Add(this.SelectNextSiblingAction, null);
+            this.IncludePreviousSiblingAction = new Gtk.Action("IncludePreviousSiblingAction", Mono.Unix.Catalog.GetString("Include Previous Sibling"), null, null);
+            this.IncludePreviousSiblingAction.ShortLabel = Mono.Unix.Catalog.GetString("Include Previous Sibling");
+            w1.Add(this.IncludePreviousSiblingAction, null);
+            this.IncludeNextSiblingAction = new Gtk.Action("IncludeNextSiblingAction", Mono.Unix.Catalog.GetString("Include Next Sibling"), null, null);
+            this.IncludeNextSiblingAction.ShortLabel = Mono.Unix.Catalog.GetString("Include Next Sibling");
+            w1.Add(this.IncludeNextSiblingAction, null);
+            this.RestrictChildAction = new Gtk.Action("RestrictChildAction", Mono.Unix.Catalog.GetString("Restrict Child"), null, null);
+            this.RestrictChildAction.ShortLabel = Mono.Unix.Catalog.GetString("Restrict Child");
+            w1.Add(this.RestrictChildAction, null);
+            this.TestAction = new Gtk.Action("TestAction", Mono.Unix.Catalog.GetString("Test"), null, null);
+            this.TestAction.ShortLabel = Mono.Unix.Catalog.GetString("Test");
+            w1.Add(this.TestAction, null);
+            this.Insert1Action = new Gtk.Action("Insert1Action", Mono.Unix.Catalog.GetString("Insert 1"), null, null);
+            this.Insert1Action.ShortLabel = Mono.Unix.Catalog.GetString("Insert 1");
+            w1.Add(this.Insert1Action, null);
+            this.Insert2Action = new Gtk.Action("Insert2Action", Mono.Unix.Catalog.GetString("Insert 2"), null, null);
+            this.Insert2Action.ShortLabel = Mono.Unix.Catalog.GetString("Insert 2");
+            w1.Add(this.Insert2Action, null);
+            this.MoveUpAction1 = new Gtk.Action("MoveUpAction1", Mono.Unix.Catalog.GetString("Move Up"), null, null);
+            this.MoveUpAction1.ShortLabel = Mono.Unix.Catalog.GetString("Move Up");
+            w1.Add(this.MoveUpAction1, null);
+            this.MoveDownAction1 = new Gtk.Action("MoveDownAction1", Mono.Unix.Catalog.GetString("Move Down"), null, null);
+            this.MoveDownAction1.ShortLabel = Mono.Unix.Catalog.GetString("Move Down");
+            w1.Add(this.MoveDownAction1, null);
             this.UIManager.InsertActionGroup(w1, 0);
             this.AddAccelGroup(this.UIManager.AccelGroup);
             this.Name = "Synpl.ShellGtk.MainWindow";
@@ -90,7 +150,7 @@ namespace Synpl.ShellGtk {
             this.vbox2.Name = "vbox2";
             this.vbox2.Spacing = 6;
             // Container child vbox2.Gtk.Box+BoxChild
-            this.UIManager.AddUiFromString("<ui><menubar name='menubar3'><menu name='FileAction' action='FileAction'><menuitem name='NewAction' action='NewAction'/><menuitem name='OpenAction' action='OpenAction'/><menuitem name='SaveAction' action='SaveAction'/><menuitem name='SaveAsAction' action='SaveAsAction'/><menuitem name='ExitAction' action='ExitAction'/></menu><menu name='EditAction' action='EditAction'><menuitem name='CopyAction' action='CopyAction'/><menuitem name='CutAction' action='CutAction'/><menuitem name='PasteAction' action='PasteAction'/></menu></menubar></ui>");
+            this.UIManager.AddUiFromString("<ui><menubar name='menubar3'><menu name='FileAction' action='FileAction'><menuitem name='NewAction' action='NewAction'/><menuitem name='OpenAction' action='OpenAction'/><menuitem name='SaveAction' action='SaveAction'/><menuitem name='SaveAsAction' action='SaveAsAction'/><menuitem name='ExitAction' action='ExitAction'/></menu><menu name='EditAction' action='EditAction'><menuitem name='CopyAction' action='CopyAction'/><menuitem name='CutAction' action='CutAction'/><menuitem name='PasteAction' action='PasteAction'/><menuitem name='MoveUpAction1' action='MoveUpAction1'/><menuitem name='MoveDownAction1' action='MoveDownAction1'/></menu><menu name='SelectAction' action='SelectAction'><menuitem name='ExtendToParentAction' action='ExtendToParentAction'/><menuitem name='RestrictChildAction' action='RestrictChildAction'/><menuitem name='SelectPreviousSiblingAction' action='SelectPreviousSiblingAction'/><menuitem name='SelectNextSiblingAction' action='SelectNextSiblingAction'/></menu><menu name='TestAction' action='TestAction'><menuitem name='Insert1Action' action='Insert1Action'/><menuitem name='Insert2Action' action='Insert2Action'/></menu></menubar></ui>");
             this.menubar3 = ((Gtk.MenuBar)(this.UIManager.GetWidget("/menubar3")));
             this.menubar3.Name = "menubar3";
             this.vbox2.Add(this.menubar3);
@@ -123,7 +183,7 @@ namespace Synpl.ShellGtk {
             if ((this.Child != null)) {
                 this.Child.ShowAll();
             }
-            this.DefaultWidth = 408;
+            this.DefaultWidth = 512;
             this.DefaultHeight = 300;
             this.Show();
             this.DeleteEvent += new Gtk.DeleteEventHandler(this.OnDeleteEvent);
@@ -131,6 +191,14 @@ namespace Synpl.ShellGtk {
             this.CopyAction.Activated += new System.EventHandler(this.OnCopyActionActivated);
             this.CutAction.Activated += new System.EventHandler(this.OnCutActionActivated);
             this.PasteAction.Activated += new System.EventHandler(this.OnPasteActionActivated);
+            this.ExtendToParentAction.Activated += new System.EventHandler(this.OnExtendToParentActionActivated);
+            this.SelectPreviousSiblingAction.Activated += new System.EventHandler(this.OnSelectPreviousSiblingActionActivated);
+            this.SelectNextSiblingAction.Activated += new System.EventHandler(this.OnSelectNextSiblingActionActivated);
+            this.RestrictChildAction.Activated += new System.EventHandler(this.OnRestrictChildActionActivated);
+            this.Insert1Action.Activated += new System.EventHandler(this.OnInsert1ActionActivated);
+            this.Insert2Action.Activated += new System.EventHandler(this.OnInsert2ActionActivated);
+            this.MoveUpAction1.Activated += new System.EventHandler(this.OnMoveUpAction1Activated);
+            this.MoveDownAction1.Activated += new System.EventHandler(this.OnMoveDownAction1Activated);
         }
     }
 }

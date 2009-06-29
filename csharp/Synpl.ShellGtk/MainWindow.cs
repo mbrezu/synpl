@@ -28,13 +28,13 @@ namespace Synpl.ShellGtk
 	public partial class MainWindow: Gtk.Window
 	{
         // TODO: Mock editor for testing.
-        // TODO: Selection by trees and subtrees.
-        // TODO: Moveup/movedown trees in the editor.
+        // TODO: Selection of multiple nodes (to handle extend selection up/down).
+        // TODO: Try keyboard accelerators (mode for structured editing).
         // TODO: Pretty printing? :-) This needs some design work.
         // TODO: Indent (first tree on current line at the same indentation
         // as the previous node, or slightly indented with regard to the parent
         // if there is no previous node.
-        
+
         // TODO: Common shell code (independent of the UI) should be extracted to
         // a Synpl.Shell assembly/namespace so it's not duplicated across shells.
 
@@ -45,6 +45,7 @@ namespace Synpl.ShellGtk
         // This toy clipboard isn't intended for serious use, I just want to be able
         // to test the functionality of the GtkTextViewEditor class
         private string _clipboard = String.Empty;
+        private CowList<ParseTree> _selectedTreeStack;
 		#endregion
 		
 		#region Constructor
@@ -56,6 +57,7 @@ namespace Synpl.ShellGtk
 			_editor.TextChanged += HandleTextChanged;
 			txtEditor.KeyReleaseEvent += HandleKeyReleaseEvent;
             _text = new TextWithChanges(_editor);
+            _selectedTreeStack = new CowList<ParseTree>();
 			ShowAll();
 		}
 
@@ -272,10 +274,36 @@ namespace Synpl.ShellGtk
             _editor.GetSelection(out selStart, out selEnd);
             return _editor.GetText(selStart, selEnd - selStart);
         }
+
+        private void ValidateSelectionStack()
+        {
+            int selStart, selEnd;
+            _editor.GetSelection(out selStart, out selEnd);
+            if (_selectedTreeStack.Count > 0)
+            {
+                if (selStart != _selectedTreeStack.Last.StartPosition
+                    || selEnd != _selectedTreeStack.Last.EndPosition)
+                {
+                    _selectedTreeStack.Clear();
+                }
+            }
+        }
+
+        private void UpdateSelection(ParseTree newRoot, CowList<int> path)
+        {
+            if (newRoot != null)
+            {
+                _selectedTreeStack.Clear();
+                _parseTree = newRoot;
+                _selectedTreeStack.Add(_parseTree.GetNodeAtPath(path));
+                _editor.SetSelection(_selectedTreeStack.Last.StartPosition,
+                                     _selectedTreeStack.Last.EndPosition);                
+            }
+        }
 		#endregion
 		
 		#region Form Event Handlers
-		protected void OnDeleteEvent (object sender, DeleteEventArgs a)
+		protected void OnDeleteEvent(object sender, DeleteEventArgs a)
 		{
 			Application.Quit ();
 			a.RetVal = true;
@@ -291,18 +319,18 @@ namespace Synpl.ShellGtk
 //			_editor.RequestFormatting(0, _editor.Length, hints);
 		}
 
-        protected virtual void OnExitActionActivated (object sender, System.EventArgs e)
+        protected virtual void OnExitActionActivated(object sender, System.EventArgs e)
         {
             Application.Quit();
         }
        
-        protected virtual void OnCopyActionActivated (object sender, System.EventArgs e)
+        protected virtual void OnCopyActionActivated(object sender, System.EventArgs e)
         {
             _clipboard = GetSelectedText();
 //            Console.WriteLine(_clipboard);
         }
        
-        protected virtual void OnCutActionActivated (object sender, System.EventArgs e)
+        protected virtual void OnCutActionActivated(object sender, System.EventArgs e)
         {
             _clipboard = GetSelectedText();
             int selStart, selEnd;
@@ -310,13 +338,147 @@ namespace Synpl.ShellGtk
             _editor.DeleteText(selStart, selEnd - selStart, true);
         }
 
-        protected virtual void OnPasteActionActivated (object sender, System.EventArgs e)
+        protected virtual void OnPasteActionActivated(object sender, System.EventArgs e)
         {
             _editor.InsertText(_editor.CursorOffset, _clipboard, true);
+        }
+
+        protected virtual void OnExtendToParentActionActivated(object sender, System.EventArgs e)
+        {
+            if (_parseTree == null)
+            {
+                return;
+            }
+            ValidateSelectionStack();
+            int selStart, selEnd;
+            _editor.GetSelection(out selStart, out selEnd);
+            if (_selectedTreeStack.Count == 0 || !_selectedTreeStack.Last.Contains(selStart))
+            {
+                _selectedTreeStack.Clear();
+                CowList<ParseTree> pts = _parseTree.GetPathForPosition(selStart);
+                if (pts.Count == 0)
+                {
+                    return;
+                }
+                _selectedTreeStack.Add(pts.Last);
+            }
+            else
+            {
+                if (_selectedTreeStack.Last.Parent != null)
+                {
+                    _selectedTreeStack.Add(_selectedTreeStack.Last.Parent);
+                }
+            }
+            _editor.SetSelection(_selectedTreeStack.Last.StartPosition, 
+                                 _selectedTreeStack.Last.EndPosition);
+        }
+
+        protected virtual void OnRestrictChildActionActivated (object sender, System.EventArgs e)
+        {
+            ValidateSelectionStack();
+            if (_selectedTreeStack.Count >= 2)
+            {
+                _selectedTreeStack.RemoveAt(_selectedTreeStack.Count - 1);
+                _editor.SetSelection(_selectedTreeStack.Last.StartPosition, 
+                                     _selectedTreeStack.Last.EndPosition);
+            }            
+        }
+
+        protected virtual void OnInsert1ActionActivated (object sender, System.EventArgs e)
+        {
+            _parseTree = null;
+            _editor.DeleteText(0, _editor.Length, false);
+            _editor.InsertText(0, "(map fun ((1 2) (3 (4)) (5 6)))", false);
+            _selectedTreeStack.Clear();
+        }
+
+        protected virtual void OnInsert2ActionActivated (object sender, System.EventArgs e)
+        {
+            _parseTree = null;
+            _editor.DeleteText(0, _editor.Length, false);
+            _editor.InsertText(0, @"
+(map (lambda (x) (* x x))
+     '(1 2 3 4 5))", false);
+            _selectedTreeStack.Clear();
+        }
+
+        protected virtual void OnSelectPreviousSiblingActionActivated(object sender,
+                                                                      System.EventArgs e)
+        {
+            if (_selectedTreeStack.Count > 0)
+            {
+                ParseTree prev = _selectedTreeStack.Last.GetPreviousSibling();
+                if (prev != null)
+                {
+                    _selectedTreeStack.Add(prev);
+                    _editor.SetSelection(_selectedTreeStack.Last.StartPosition,
+                                         _selectedTreeStack.Last.EndPosition);
+                }
+            }
+        }
+
+        protected virtual void OnSelectNextSiblingActionActivated(object sender,
+                                                                  System.EventArgs e)
+        {
+            if (_selectedTreeStack.Count > 0)
+            {
+                ParseTree next = _selectedTreeStack.Last.GetNextSibling();
+                if (next != null)
+                {
+                    _selectedTreeStack.Add(next);
+                    _editor.SetSelection(_selectedTreeStack.Last.StartPosition,
+                                         _selectedTreeStack.Last.EndPosition);
+                }
+            }
+        }
+
+        protected virtual void OnMoveUpAction1Activated(object sender,
+                                                        System.EventArgs e)
+        {
+            if (_parseTree == null)
+            {
+                return;
+            }
+            if (_selectedTreeStack.Count == 0)
+            {
+                return;
+            }
+            CowList<int> path = _selectedTreeStack.Last.GetPath();
+            if (path.Count > 0)
+            {
+                if (path.Last > 0)
+                {
+                    path.Last --;
+                }
+            }
+            ParseTree newRoot = _selectedTreeStack.Last.MoveUp();
+            UpdateSelection(newRoot, path);
+        }
+
+        protected virtual void OnMoveDownAction1Activated(object sender,
+                                                          System.EventArgs e)
+        {
+            if (_parseTree == null)
+            {
+                return;
+            }
+            if (_selectedTreeStack.Count == 0)
+            {
+                return;
+            }
+            CowList<int> path = _selectedTreeStack.Last.GetPath();
+            if (path.Count > 0)
+            {
+                if (path.Last < _selectedTreeStack.Last.Parent.SubTrees.Count - 1)
+                {
+                    path.Last ++;
+                }
+            }
+            ParseTree newRoot = _selectedTreeStack.Last.MoveDown();
+            UpdateSelection(newRoot, path);
         }
         
 		#endregion
 
-    
     }
 }

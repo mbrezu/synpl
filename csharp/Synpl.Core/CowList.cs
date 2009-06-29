@@ -297,6 +297,10 @@ namespace Synpl.Core
             {
                 return _storage.Storage[_offset + _length - 1];
             }
+            set
+            {
+                _storage.Storage[_offset + _length - 1] = value;
+            }
         }
         
         public T Head

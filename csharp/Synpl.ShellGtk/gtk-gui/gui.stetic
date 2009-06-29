@@ -8,7 +8,7 @@
     <widget-library name="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <widget-library name="../bin/Debug/Synpl.Shell.exe" internal="true" />
   </import>
-  <widget class="Gtk.Window" id="Synpl.ShellGtk.MainWindow" design-size="408 300">
+  <widget class="Gtk.Window" id="Synpl.ShellGtk.MainWindow" design-size="512 300">
     <action-group name="Default">
       <action id="FileAction">
         <property name="Type">Action</property>
@@ -64,6 +64,74 @@
         <property name="Label" translatable="yes">Save _As</property>
         <property name="ShortLabel" translatable="yes">Save As</property>
       </action>
+      <action id="SelectAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Select</property>
+        <property name="ShortLabel" translatable="yes">Select</property>
+      </action>
+      <action id="ExtendToParentAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Extend To Parent</property>
+        <property name="ShortLabel" translatable="yes">Extend To Parent</property>
+        <signal name="Activated" handler="OnExtendToParentActionActivated" />
+      </action>
+      <action id="SelectPreviousSiblingAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Select Previous Sibling</property>
+        <property name="ShortLabel" translatable="yes">Select Previous Sibling</property>
+        <signal name="Activated" handler="OnSelectPreviousSiblingActionActivated" />
+      </action>
+      <action id="SelectNextSiblingAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Select Next Sibling</property>
+        <property name="ShortLabel" translatable="yes">Select Next Sibling</property>
+        <signal name="Activated" handler="OnSelectNextSiblingActionActivated" />
+      </action>
+      <action id="IncludePreviousSiblingAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Include Previous Sibling</property>
+        <property name="ShortLabel" translatable="yes">Include Previous Sibling</property>
+      </action>
+      <action id="IncludeNextSiblingAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Include Next Sibling</property>
+        <property name="ShortLabel" translatable="yes">Include Next Sibling</property>
+      </action>
+      <action id="RestrictChildAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Restrict Child</property>
+        <property name="ShortLabel" translatable="yes">Restrict Child</property>
+        <signal name="Activated" handler="OnRestrictChildActionActivated" />
+      </action>
+      <action id="TestAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Test</property>
+        <property name="ShortLabel" translatable="yes">Test</property>
+      </action>
+      <action id="Insert1Action">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Insert 1</property>
+        <property name="ShortLabel" translatable="yes">Insert 1</property>
+        <signal name="Activated" handler="OnInsert1ActionActivated" />
+      </action>
+      <action id="Insert2Action">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Insert 2</property>
+        <property name="ShortLabel" translatable="yes">Insert 2</property>
+        <signal name="Activated" handler="OnInsert2ActionActivated" />
+      </action>
+      <action id="MoveUpAction1">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Move Up</property>
+        <property name="ShortLabel" translatable="yes">Move Up</property>
+        <signal name="Activated" handler="OnMoveUpAction1Activated" />
+      </action>
+      <action id="MoveDownAction1">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Move Down</property>
+        <property name="ShortLabel" translatable="yes">Move Down</property>
+        <signal name="Activated" handler="OnMoveDownAction1Activated" />
+      </action>
     </action-group>
     <property name="MemberName" />
     <property name="Title" translatable="yes">MainWindow</property>
@@ -88,6 +156,18 @@
                 <node type="Menuitem" action="CopyAction" />
                 <node type="Menuitem" action="CutAction" />
                 <node type="Menuitem" action="PasteAction" />
+                <node type="Menuitem" action="MoveUpAction1" />
+                <node type="Menuitem" action="MoveDownAction1" />
+              </node>
+              <node type="Menu" action="SelectAction">
+                <node type="Menuitem" action="ExtendToParentAction" />
+                <node type="Menuitem" action="RestrictChildAction" />
+                <node type="Menuitem" action="SelectPreviousSiblingAction" />
+                <node type="Menuitem" action="SelectNextSiblingAction" />
+              </node>
+              <node type="Menu" action="TestAction">
+                <node type="Menuitem" action="Insert1Action" />
+                <node type="Menuitem" action="Insert2Action" />
               </node>
             </node>
           </widget>
