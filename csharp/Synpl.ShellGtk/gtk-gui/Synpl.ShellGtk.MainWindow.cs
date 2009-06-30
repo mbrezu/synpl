@@ -59,6 +59,8 @@ namespace Synpl.ShellGtk {
         
         private Gtk.Action MoveDownAction1;
         
+        private Gtk.Action IndentAction;
+        
         private Gtk.VBox vbox2;
         
         private Gtk.MenuBar menubar3;
@@ -67,7 +69,7 @@ namespace Synpl.ShellGtk {
         
         private Gtk.TextView txtEditor;
         
-        private Gtk.Statusbar statusbar2;
+        private Gtk.Label label1;
         
         protected virtual void Build() {
             Stetic.Gui.Initialize(this);
@@ -140,6 +142,9 @@ namespace Synpl.ShellGtk {
             this.MoveDownAction1 = new Gtk.Action("MoveDownAction1", Mono.Unix.Catalog.GetString("Move Down"), null, null);
             this.MoveDownAction1.ShortLabel = Mono.Unix.Catalog.GetString("Move Down");
             w1.Add(this.MoveDownAction1, null);
+            this.IndentAction = new Gtk.Action("IndentAction", Mono.Unix.Catalog.GetString("Indent"), null, null);
+            this.IndentAction.ShortLabel = Mono.Unix.Catalog.GetString("Indent");
+            w1.Add(this.IndentAction, null);
             this.UIManager.InsertActionGroup(w1, 0);
             this.AddAccelGroup(this.UIManager.AccelGroup);
             this.Name = "Synpl.ShellGtk.MainWindow";
@@ -150,7 +155,7 @@ namespace Synpl.ShellGtk {
             this.vbox2.Name = "vbox2";
             this.vbox2.Spacing = 6;
             // Container child vbox2.Gtk.Box+BoxChild
-            this.UIManager.AddUiFromString("<ui><menubar name='menubar3'><menu name='FileAction' action='FileAction'><menuitem name='NewAction' action='NewAction'/><menuitem name='OpenAction' action='OpenAction'/><menuitem name='SaveAction' action='SaveAction'/><menuitem name='SaveAsAction' action='SaveAsAction'/><menuitem name='ExitAction' action='ExitAction'/></menu><menu name='EditAction' action='EditAction'><menuitem name='CopyAction' action='CopyAction'/><menuitem name='CutAction' action='CutAction'/><menuitem name='PasteAction' action='PasteAction'/><menuitem name='MoveUpAction1' action='MoveUpAction1'/><menuitem name='MoveDownAction1' action='MoveDownAction1'/></menu><menu name='SelectAction' action='SelectAction'><menuitem name='ExtendToParentAction' action='ExtendToParentAction'/><menuitem name='RestrictChildAction' action='RestrictChildAction'/><menuitem name='SelectPreviousSiblingAction' action='SelectPreviousSiblingAction'/><menuitem name='SelectNextSiblingAction' action='SelectNextSiblingAction'/></menu><menu name='TestAction' action='TestAction'><menuitem name='Insert1Action' action='Insert1Action'/><menuitem name='Insert2Action' action='Insert2Action'/></menu></menubar></ui>");
+            this.UIManager.AddUiFromString("<ui><menubar name='menubar3'><menu name='FileAction' action='FileAction'><menuitem name='NewAction' action='NewAction'/><menuitem name='OpenAction' action='OpenAction'/><menuitem name='SaveAction' action='SaveAction'/><menuitem name='SaveAsAction' action='SaveAsAction'/><menuitem name='ExitAction' action='ExitAction'/></menu><menu name='EditAction' action='EditAction'><menuitem name='CopyAction' action='CopyAction'/><menuitem name='CutAction' action='CutAction'/><menuitem name='PasteAction' action='PasteAction'/><menuitem name='MoveUpAction1' action='MoveUpAction1'/><menuitem name='MoveDownAction1' action='MoveDownAction1'/><menuitem name='IndentAction' action='IndentAction'/></menu><menu name='SelectAction' action='SelectAction'><menuitem name='ExtendToParentAction' action='ExtendToParentAction'/><menuitem name='RestrictChildAction' action='RestrictChildAction'/><menuitem name='SelectPreviousSiblingAction' action='SelectPreviousSiblingAction'/><menuitem name='SelectNextSiblingAction' action='SelectNextSiblingAction'/></menu><menu name='TestAction' action='TestAction'><menuitem name='Insert1Action' action='Insert1Action'/><menuitem name='Insert2Action' action='Insert2Action'/></menu></menubar></ui>");
             this.menubar3 = ((Gtk.MenuBar)(this.UIManager.GetWidget("/menubar3")));
             this.menubar3.Name = "menubar3";
             this.vbox2.Add(this.menubar3);
@@ -171,11 +176,10 @@ namespace Synpl.ShellGtk {
             Gtk.Box.BoxChild w4 = ((Gtk.Box.BoxChild)(this.vbox2[this.GtkScrolledWindow]));
             w4.Position = 1;
             // Container child vbox2.Gtk.Box+BoxChild
-            this.statusbar2 = new Gtk.Statusbar();
-            this.statusbar2.Name = "statusbar2";
-            this.statusbar2.Spacing = 6;
-            this.vbox2.Add(this.statusbar2);
-            Gtk.Box.BoxChild w5 = ((Gtk.Box.BoxChild)(this.vbox2[this.statusbar2]));
+            this.label1 = new Gtk.Label();
+            this.label1.Name = "label1";
+            this.vbox2.Add(this.label1);
+            Gtk.Box.BoxChild w5 = ((Gtk.Box.BoxChild)(this.vbox2[this.label1]));
             w5.Position = 2;
             w5.Expand = false;
             w5.Fill = false;
@@ -199,6 +203,7 @@ namespace Synpl.ShellGtk {
             this.Insert2Action.Activated += new System.EventHandler(this.OnInsert2ActionActivated);
             this.MoveUpAction1.Activated += new System.EventHandler(this.OnMoveUpAction1Activated);
             this.MoveDownAction1.Activated += new System.EventHandler(this.OnMoveDownAction1Activated);
+            this.IndentAction.Activated += new System.EventHandler(this.OnIndentActionActivated);
         }
     }
 }

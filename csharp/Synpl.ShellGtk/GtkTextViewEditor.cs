@@ -141,6 +141,19 @@ namespace Synpl.ShellGtk
 			}
 		}
 
+        public int LineColumnToOffset(int line, int column)
+        {
+            TextIter iter = _textView.Buffer.GetIterAtLineOffset(line, column);
+            return iter.Offset;
+        }
+
+        public void OffsetToLineColumn(int offset, out int line, out int column)
+        {
+            TextIter iter = _textView.Buffer.GetIterAtOffset(offset);
+            line = iter.Line;
+            column = iter.LineOffset;
+        }
+
 		public event EventHandler<TextChangedEventArgs> TextChanged;
 		#endregion
 
@@ -220,12 +233,17 @@ namespace Synpl.ShellGtk
 
 		private void HandleDeleteRange(object o, DeleteRangeArgs args)
 		{
+            Console.WriteLine("In deleteeee");
             if (_inhibitTextChanged)
             {
+                Console.WriteLine("delete inhibited.");
                 return;
             }
 			if (_lastSelectionEnd != _lastSelectionStart)
             {
+                // FIXME: this isn't triggered for programatic deletes. Should
+                // move code to OnTextChanged and fire it from the DeleteText method.
+                Console.WriteLine("changed selection");
                 if (TextChanged != null)
                 {
 					TextChanged(this,
@@ -250,7 +268,7 @@ namespace Synpl.ShellGtk
 			if (TextChanged != null) {
 				TextChanged(this, 
                             new TextChangedEventArgs(TextChangedEventArgs.OperationType.Insertion,
-                                                     args.Pos.Offset,
+                                                     args.Pos.Offset - 1,
                                                      args.Length,
                                                      args.Text));
 			}

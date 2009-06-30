@@ -132,6 +132,12 @@
         <property name="ShortLabel" translatable="yes">Move Down</property>
         <signal name="Activated" handler="OnMoveDownAction1Activated" />
       </action>
+      <action id="IndentAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Indent</property>
+        <property name="ShortLabel" translatable="yes">Indent</property>
+        <signal name="Activated" handler="OnIndentActionActivated" />
+      </action>
     </action-group>
     <property name="MemberName" />
     <property name="Title" translatable="yes">MainWindow</property>
@@ -158,6 +164,7 @@
                 <node type="Menuitem" action="PasteAction" />
                 <node type="Menuitem" action="MoveUpAction1" />
                 <node type="Menuitem" action="MoveDownAction1" />
+                <node type="Menuitem" action="IndentAction" />
               </node>
               <node type="Menu" action="SelectAction">
                 <node type="Menuitem" action="ExtendToParentAction" />
@@ -197,15 +204,8 @@
           </packing>
         </child>
         <child>
-          <widget class="Gtk.Statusbar" id="statusbar2">
+          <widget class="Gtk.Label" id="label1">
             <property name="MemberName" />
-            <property name="Spacing">6</property>
-            <child>
-              <placeholder />
-            </child>
-            <child>
-              <placeholder />
-            </child>
           </widget>
           <packing>
             <property name="Position">2</property>

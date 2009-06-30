@@ -67,7 +67,7 @@ namespace Synpl.ShellGtk
                 SexpParser.GetInstance(SexpParser.ParseType.Global).
                     TokenizerFunc(_text.GetCurrentSlice(0,
                                                         _text.GetActualLength()));
-            Console.WriteLine(">>> tokens: {0}", tokens);
+//            Console.WriteLine(">>> tokens: {0}", tokens);
             CowList<Token> remainingTokens = null;
             try 
             {
@@ -84,17 +84,17 @@ namespace Synpl.ShellGtk
             }
             if (remainingTokens != null && remainingTokens.Count > 0)
             {
-                Console.WriteLine("Tokens left in the stream, incomplete parse.");
+//                Console.WriteLine("Tokens left in the stream, incomplete parse.");
             }
             // HACK: Maybe validate slice should be called by the parser?
             _text.ValidateSlice(_parseTree.StartPosition, _parseTree.EndPosition);
-            Console.WriteLine(">>> New parse tree:");
-            Console.WriteLine(">>> TWC is: {0}", _text.TestRender());
-            Console.WriteLine(">>> Code tree is:{0}{1}", 
-                              Environment.NewLine,
-                              _parseTree.ToStringAsTree());            
-            Console.WriteLine(">>> Old code is '{0}'.", _parseTree.ToStringAsCode(true));
-            Console.WriteLine(">>> New code is '{0}'.", _parseTree.ToStringAsCode(false));
+//            Console.WriteLine(">>> New parse tree:");
+//            Console.WriteLine(">>> TWC is: {0}", _text.TestRender());
+//            Console.WriteLine(">>> Code tree is:{0}{1}", 
+//                              Environment.NewLine,
+//                              _parseTree.ToStringAsTree());            
+//            Console.WriteLine(">>> Old code is '{0}'.", _parseTree.ToStringAsCode(true));
+//            Console.WriteLine(">>> New code is '{0}'.", _parseTree.ToStringAsCode(false));
         }
         
         private void TryParsing(TextChangedEventArgs e)
@@ -102,7 +102,7 @@ namespace Synpl.ShellGtk
             if (_parseTree == null 
                 || _parseTree.EndPosition <= e.Start)
             {
-                Console.WriteLine("Complete Reparse.");
+//                Console.WriteLine("Complete Reparse.");
                 _text.SetText("");
                 string text = _editor.GetText(0, _editor.Length);
                 int pos = 0;
@@ -124,28 +124,28 @@ namespace Synpl.ShellGtk
                     {
                         _parseTree = _parseTree.CharInsertedAt(e.Text[i], e.Start + i);
                     }
-                    Console.WriteLine(">>> After insert:");
+//                    Console.WriteLine(">>> After insert:");
                     break;
                 case TextChangedEventArgs.OperationType.Deletion:
-                    Console.WriteLine(">>> TWC is: {0}", _text.TestRender());
+//                    Console.WriteLine(">>> TWC is: {0}", _text.TestRender());
                     for (int i = 0; i < e.Length; i++)
                     {
                         _parseTree = _parseTree.CharDeletedAt(e.Start);
                     }
-                    Console.WriteLine(">>> After delete:");
+//                    Console.WriteLine(">>> After delete:");
                     break;
                 default:
                     Console.WriteLine("Unknown text change operation.");
                     break;
                 }
-                Console.WriteLine(">>> Code tree is:{0}{1}", 
-                                  Environment.NewLine,
-                                  _parseTree.ToStringAsTree());
-                Console.WriteLine(">>> TWC is: {1}: {0}", 
-                                  _text.TestRender(),
-                                  _text.GetHashCode());
-                Console.WriteLine(">>> Old code is '{0}'.", _parseTree.ToStringAsCode(true));
-                Console.WriteLine(">>> New code is '{0}'.", _parseTree.ToStringAsCode(false));
+//                Console.WriteLine(">>> Code tree is:{0}{1}", 
+//                                  Environment.NewLine,
+//                                  _parseTree.ToStringAsTree());
+//                Console.WriteLine(">>> TWC is: {1}: {0}", 
+//                                  _text.TestRender(),
+//                                  _text.GetHashCode());
+//                Console.WriteLine(">>> Old code is '{0}'.", _parseTree.ToStringAsCode(true));
+//                Console.WriteLine(">>> New code is '{0}'.", _parseTree.ToStringAsCode(false));
             }
         }
 
@@ -195,7 +195,7 @@ namespace Synpl.ShellGtk
             IList<TextChange> changes = _text.Changes;
             List<FormattingHint> hints = new List<FormattingHint>();
             List<int> deletePositions = new List<int>();
-            Console.WriteLine(">>> Formatting hints:");
+//            Console.WriteLine(">>> Formatting hints:");
             foreach(TextChange change in changes)
             {
                 if (!change.IsDeletion)
@@ -204,7 +204,7 @@ namespace Synpl.ShellGtk
                                                              change.Position + 1, 
                                                              "addedText");
                     hints.Add(hint);
-                    Console.WriteLine(hint);
+//                    Console.WriteLine(hint);
                 }
                 else
                 {
@@ -241,7 +241,7 @@ namespace Synpl.ShellGtk
                 FormattingHint hint = new FormattingHint(pt.StartPosition,
                                                          pt.EndPosition,
                                                          "brokenByDelete");
-                Console.WriteLine(hint);
+//                Console.WriteLine(hint);
                 hints.Add(hint);
             }
             _editor.RequestFormatting(0, _editor.Length, hints);
@@ -251,11 +251,14 @@ namespace Synpl.ShellGtk
 		#region Editor Event Handlers
 		private void HandleTextChanged(object sender, TextChangedEventArgs e)
 		{
+            Console.WriteLine("************************");
+            Console.WriteLine("TWC before: {0}", _text.TestRender());
             UpdateTextWithChanges(e);
             TryParsing(e);
             UpdateFormatting();
-//			Console.WriteLine(">>> {0}", e.Operation);
-//			Console.WriteLine("{0}, {1}: \"{2}\"", e.Start, e.Length, e.Text);
+			Console.WriteLine(">>> {0}", e.Operation);
+			Console.WriteLine("{0}, {1}: \"{2}\"", e.Start, e.Length, e.Text);
+            Console.WriteLine("TWC after: {0}", _text.TestRender());
 		}
 		#endregion
 		
@@ -311,6 +314,18 @@ namespace Synpl.ShellGtk
 
 		void HandleKeyReleaseEvent(object o, KeyReleaseEventArgs args)
 		{
+            int offset = _editor.CursorOffset;
+            int line, column;
+            _editor.OffsetToLineColumn(offset, out line, out column);
+            int selStart, selEnd;
+            _editor.GetSelection(out selStart, out selEnd);
+            label1.Text = String.Format("Position: {0} {1} {2}; Selection: {3}-{4}", 
+                                        offset, 
+                                        line, 
+                                        column,
+                                        selStart,
+                                        selEnd);
+            label1.Justify = Justification.Left;
             // TODO: Extend this to get some syntax highlighting without parsing?
 //			List<FormattingHint> hints = new List<FormattingHint>();
 //			hints.Add(new FormattingHint(0, 3, "keyword"));
@@ -476,6 +491,66 @@ namespace Synpl.ShellGtk
             }
             ParseTree newRoot = _selectedTreeStack.Last.MoveDown();
             UpdateSelection(newRoot, path);
+        }
+
+        protected virtual void OnIndentActionActivated (object sender, System.EventArgs e)
+        {
+            if (_parseTree == null)
+            {
+                return;
+            }
+            int currentOffset = _editor.CursorOffset;
+            int currentLine, currentColumn;
+            _editor.OffsetToLineColumn(currentOffset, out currentLine, out currentColumn);
+            if (currentLine == 0)
+            {
+                return;
+            }
+            Console.WriteLine("!!! Indenting:");
+            Console.WriteLine("current: {0} {1} {2}", currentOffset, currentLine, currentColumn);
+            int lineStartOffset = _editor.LineColumnToOffset(currentLine, 0);
+            Console.WriteLine("line start:{0}", lineStartOffset);
+            ParseTree lineStarter = _parseTree.GetFirstNodeAfter(lineStartOffset);
+            if (lineStarter == null)
+            {
+                return;
+            }
+            ParseTree lastSibling = lineStarter.GetLastSiblingBefore(lineStartOffset);
+            int indentOffset;
+            if (lastSibling != null)
+            {
+                Console.WriteLine("indent by sibling");
+                indentOffset = lastSibling.StartPosition;
+            }
+            else if (lineStarter.Parent != null)
+            {
+                Console.WriteLine("indent by parent");
+                indentOffset = lineStarter.Parent.StartPosition + 2;
+            }
+            else
+            {
+                return;
+            }
+            int indentLine, indentColumn;
+            _editor.OffsetToLineColumn(indentOffset, out indentLine, out indentColumn);
+            Console.WriteLine("desired: {0} {1} {2}", indentOffset, indentLine, indentColumn);
+            int lineStarterLine, lineStarterColumn;
+            _editor.OffsetToLineColumn(lineStarter.StartPosition, 
+                                       out lineStarterLine,
+                                       out lineStarterColumn);
+            Console.WriteLine("found: {0} {1} {2}", lineStarter.StartPosition, lineStarterLine, lineStarterColumn);
+            if (lineStarterColumn < indentColumn)                
+            {
+                Console.WriteLine("adding");
+                _editor.InsertText(lineStartOffset, 
+                                   new String(' ', indentColumn - lineStarterColumn), 
+                                   false);
+            }
+            else if (lineStarterColumn > indentColumn)
+            {
+                Console.WriteLine("deleting");
+                _editor.DeleteText(lineStartOffset, lineStarterColumn - indentColumn, false);
+            }
         }
         
 		#endregion

@@ -267,6 +267,96 @@ namespace Synpl.Test.Core
             Assert.AreEqual(null, parseTree.HasEndPosition(14));
         }
 
+        [Test]
+        public void TestAllNodes()
+        {
+            ParseTree parseTree = GetTree("(map (lambda (x) (* x x)) '(1 2 3))");
+            CowList<string> expectedCode = 
+                new CowList<string>("(map (lambda (x) (* x x)) '(1 2 3))",
+                                    "map",
+                                    "(lambda (x) (* x x))",
+                                    "lambda",
+                                    "(x)",
+                                    "x",
+                                    "(* x x)",
+                                    "*",
+                                    "x",
+                                    "x",
+                                    "'(1 2 3)",
+                                    "(1 2 3)",
+                                    "1",
+                                    "2",
+                                    "3");
+            int i = 0;
+            foreach (ParseTree pt in parseTree.AllNodes())
+            {
+                Assert.AreEqual(expectedCode[i], pt.ToStringAsCode(true));
+                i++;
+            }
+        }
+
+        [Test]
+        public void TestGetFirstNodeAfter()
+        {
+            ParseTree parseTree = GetTree("(map (lambda (x) (* x x)) '(1 2 3))");
+            ParseTreeQuote qlist = parseTree.GetNodeAtPath(new CowList<int>(2)) as ParseTreeQuote;
+            Assert.IsTrue(qlist != null);
+            int edge = qlist.StartPosition - 1;
+            Assert.AreEqual(qlist, parseTree.GetFirstNodeAfter(edge));
+            Assert.AreEqual(null, parseTree.GetFirstNodeAfter(100));
+        }
+        
+        [Test]
+        public void TestGetLastNodeBefore()
+        {
+            ParseTree parseTree = GetTree("(map (lambda (x) (* x x)) '(1 2 3))");
+            ParseTreeQuote qlist = parseTree.GetNodeAtPath(new CowList<int>(2)) as ParseTreeQuote;
+            Assert.IsTrue(qlist != null);
+            int edge = qlist.StartPosition - 1;
+            ParseTree lastX = parseTree.GetLastNodeBefore(edge);
+            ParseTree expectedLastX = parseTree.GetNodeAtPath(new CowList<int>(1, 2, 2));
+            Assert.AreEqual(expectedLastX, lastX);
+            Assert.AreEqual(null, parseTree.GetLastNodeBefore(0));            
+        }
+        
+        [Test]
+        public void TestGetLastNodeBefore2()
+        {
+            ParseTree parseTree = GetTree("'(1 2 3)");
+            ParseTreeAtom atom2 = parseTree.GetNodeAtPath(new CowList<int>(0, 1)) as ParseTreeAtom;
+            Assert.IsTrue(atom2 != null);
+            int edge = atom2.StartPosition - 1;
+            ParseTree atom1 = parseTree.GetLastNodeBefore(edge);
+            ParseTree expectedAtom1 = parseTree.GetNodeAtPath(new CowList<int>(0, 0));
+            Assert.AreEqual(expectedAtom1, atom1);
+        }
+        
+        [Test]
+        public void TestGetLastSiblingBefore()
+        {
+            ParseTree parseTree = GetTree("(map (lambda (x) (* x x)) '(1 2 3))");
+            ParseTreeQuote qlist = parseTree.GetNodeAtPath(new CowList<int>(2)) as ParseTreeQuote;
+            Assert.IsTrue(qlist != null);
+            int edge = qlist.StartPosition - 1;
+            ParseTree lambda = qlist.GetLastSiblingBefore(edge);
+            ParseTree expectedLambda = parseTree.GetNodeAtPath(new CowList<int>(1));
+            Assert.AreEqual(expectedLambda, lambda);
+            Assert.AreEqual(null, parseTree.GetLastSiblingBefore(0));            
+        }
+        
+        [Test]
+        public void TestGetFirstSiblingAfter()
+        {
+            ParseTree parseTree = GetTree("(map (lambda (x) (* x x)) '(1 2 3))");
+            ParseTreeAtom lambda = parseTree.GetNodeAtPath(new CowList<int>(1, 0)) as ParseTreeAtom;
+            Assert.IsTrue(lambda != null);
+            int edge = lambda.EndPosition + 1;
+            ParseTree argList = lambda.GetFirstSiblingAfter(edge);
+            ParseTree expectedArgList = parseTree.GetNodeAtPath(new CowList<int>(1, 1));
+            Assert.AreEqual(expectedArgList, argList);
+            Assert.AreEqual(null, parseTree.GetFirstNodeAfter(100));            
+        }
+        
         #region Private Helper Methods
         // The following functions are debugging helpers, they are not
         // used normally.
@@ -309,7 +399,7 @@ namespace Synpl.Test.Core
                 result.Add(new CharWithPosition(i, str[i]));
             }
             return result;
-        }
+        }        
         #endregion
     }
 }

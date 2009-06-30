@@ -366,7 +366,88 @@ namespace Synpl.Core
             nodeAffected._endPosition--;
             nodeAffected.OffsetSuccessorsPositionBy(-1);
             return nodeAffected.ReparseAndValidateRecursively();
-        }        
+        }
+
+        public IEnumerable<ParseTree>AllNodes()
+        {
+            Stack<ParseTree> stack = new Stack<ParseTree>();
+            stack.Push(this);
+            while (stack.Count > 0)
+            {
+                ParseTree top = stack.Pop();
+                yield return top;
+                for (int i = top.SubTrees.Count - 1; i >= 0; i--)
+                {
+                    stack.Push(top.SubTrees[i]);
+                }
+            }
+        }
+        
+        public ParseTree GetFirstNodeAfter(int position)
+        {
+            foreach (ParseTree tree in AllNodes())
+            {
+                if (tree.StartPosition >= position)
+                {
+                    return tree;
+                }
+            }
+            return null;
+        }
+
+        public ParseTree GetLastNodeBefore(int position)
+        {
+            ParseTree candidate = null;
+            foreach (ParseTree tree in AllNodes())
+            {
+                if (tree.StartPosition >= position)
+                {
+                    break;
+                }
+                if (tree.EndPosition <= position)
+                {
+                    candidate = tree;
+                }
+            }
+            return candidate;
+        }
+
+        public ParseTree GetLastSiblingBefore(int position)
+        {
+            if (_parent == null)
+            {
+                return null;
+            }
+            ParseTree candidate = null;
+            foreach (ParseTree tree in _parent.SubTrees)
+            {
+                if (tree.StartPosition >= position)
+                {
+                    break;
+                }
+                if (tree.EndPosition <= position)
+                {
+                    candidate = tree;
+                }
+            }
+            return candidate;
+        }
+
+        public ParseTree GetFirstSiblingAfter(int position)
+        {
+            if (_parent == null)
+            {
+                return null;
+            }
+            foreach (ParseTree tree in _parent.SubTrees)
+            {
+                if (tree.StartPosition >= position)
+                {
+                    return tree;
+                }
+            }
+            return null;
+        }
         #endregion
 
         #region Private Helper Methods
