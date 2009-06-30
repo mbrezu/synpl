@@ -46,7 +46,6 @@ namespace Synpl.Core
         #endregion
 
         #region Properties
-        // FIXME: text.Changes should return a readonly collection.
         public ReadOnlyCollection<TextChange> Changes {
             get {
                 return new ReadOnlyCollection<TextChange>(_changes);
