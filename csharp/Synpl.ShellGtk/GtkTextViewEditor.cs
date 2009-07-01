@@ -41,6 +41,7 @@ namespace Synpl.ShellGtk
 			_textView = textView;
 			ConfigureEvents();
 			ConfigureTags();
+            _waitForDeletionKey = false;
 		}
 		#endregion
 
@@ -85,30 +86,40 @@ namespace Synpl.ShellGtk
 
 		public void DeleteText(int position, int length, bool inhibitTextChanged)
 		{
-            if (inhibitTextChanged) {
-                _inhibitTextChanged = true;
-            }
+            // Normal event handling is disabled, we do our own triggering.
+            // This is because deleting text programatically doesn't use the selection.
+            _inhibitTextChanged = true;
 			TextIter start = _textView.Buffer.GetIterAtOffset(position);
 			TextIter end = _textView.Buffer.GetIterAtOffset(position + length);
+            string text = GetText(position, length);
 			_textView.Buffer.Delete(ref start, ref end);
-            if (inhibitTextChanged)
+            if (!inhibitTextChanged)
             {
-                _inhibitTextChanged = false;
+                OnTextChanged(TextChangedEventArgs.OperationType.Deletion,
+                              position,
+                              length,
+                              text);
             }
+            _inhibitTextChanged = false;
 		}
-		
+
 		public void InsertText(int position, string text, bool inhibitTextChanged)
 		{
-            if (inhibitTextChanged)
-            {
-                _inhibitTextChanged = true;
-            }
+            _inhibitTextChanged = true;
+            // Since TextBuffer.Insert seems to act up sometimes (triggers
+            // the wrong start position in the insert event), we do the triggering
+            // ourselves.
 			TextIter start = _textView.Buffer.GetIterAtOffset(position);
+            Console.WriteLine("InsertText: {0} {1}", position, start.Offset);
 			_textView.Buffer.Insert(ref start, text);
-            if (inhibitTextChanged)
+            if (!inhibitTextChanged)
             {
-                _inhibitTextChanged = false;
+                OnTextChanged(TextChangedEventArgs.OperationType.Insertion,
+                              position,
+                              text.Length,
+                              text);
             }
+            _inhibitTextChanged = false;
 		}
 		
 		public void SetSelection(int start, int end)
@@ -181,23 +192,51 @@ namespace Synpl.ShellGtk
 		{
 			_textView.Buffer.InsertText += HandleInsertText;
 			_textView.Buffer.DeleteRange += HandleDeleteRange;
+            _textView.Buffer.MarkSet += HandleMarkSet;
 			_textView.KeyPressEvent += HandleKeyPressEvent;
-			_textView.KeyReleaseEvent += HandleKeyReleaseEvent;			
+			_textView.KeyReleaseEvent += HandleKeyReleaseEvent;
 		}
-		
+
 		private void SaveState()
 		{
-			GetSelection(out _lastSelectionStart, out _lastSelectionEnd);
-			_lastSelectionText = GetText(_lastSelectionStart, _lastSelectionEnd - _lastSelectionStart);
-			TextIter atCursor = _textView.Buffer.GetIterAtMark(_textView.Buffer.InsertMark);
-			_charAfterCursor = atCursor.Char;
-			atCursor.BackwardChar();
-			_charBeforeCursor = atCursor.Char;			
+            if (!_waitForDeletionKey)
+            {
+                GetSelection(out _lastSelectionStart, out _lastSelectionEnd);
+    			_lastSelectionText = GetText(_lastSelectionStart, _lastSelectionEnd - _lastSelectionStart);
+    			TextIter atCursor = _textView.Buffer.GetIterAtMark(_textView.Buffer.InsertMark);
+    			_charAfterCursor = atCursor.Char;
+    			atCursor.BackwardChar();
+    			_charBeforeCursor = atCursor.Char;
+                Console.WriteLine("save state");
+                Console.WriteLine("sel: {0}-{1}, chars: '{2}' | '{3}'",
+                                  _lastSelectionStart,
+                                  _lastSelectionEnd,
+                                  _charBeforeCursor,
+                                  _charAfterCursor);
+            }
 		}
+
+        private void OnTextChanged(TextChangedEventArgs.OperationType operation,
+                                   int start,
+                                   int length,
+                                   string text)
+        {
+            if (TextChanged != null)
+            {
+                TextChanged(this,
+                            new TextChangedEventArgs(operation, start, length, text));
+            }
+        }
 		#endregion
 				
 		#region Form Event Handlers
-		void HandleKeyPressEvent(object o, KeyPressEventArgs args)
+        void HandleMarkSet(object o, MarkSetArgs args)
+        {
+            Console.WriteLine("markSet");
+            SaveState();
+        }
+
+ 		void HandleKeyPressEvent(object o, KeyPressEventArgs args)
 		{
 			SaveState();
 		}
@@ -210,19 +249,17 @@ namespace Synpl.ShellGtk
 				Gdk.EventKey ev = (Gdk.EventKey)args.Args[0];
 				if (ev.Key == Gdk.Key.BackSpace && !_inhibitTextChanged)
 				{
-                    TextChanged(this,
-                                new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
-                                                         _lastSelectionStart - 1,
-                                                         1,
-                                                         _charBeforeCursor));
+                    OnTextChanged(TextChangedEventArgs.OperationType.Deletion,  
+                                  _lastSelectionStart - 1,
+                                  1,
+                                  _charBeforeCursor);
 				}
 				else if (ev.Key == Gdk.Key.Delete && !_inhibitTextChanged)
 				{
-					TextChanged(this, 
-                                new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
-                                                         _lastSelectionStart,
-                                                         1,
-                                                         _charAfterCursor));
+					OnTextChanged(TextChangedEventArgs.OperationType.Deletion,
+                                   _lastSelectionStart,
+                                  1,
+                                  _charAfterCursor);
 				}
 			}
 			SaveState();
@@ -241,17 +278,10 @@ namespace Synpl.ShellGtk
             }
 			if (_lastSelectionEnd != _lastSelectionStart)
             {
-                // FIXME: this isn't triggered for programatic deletes. Should
-                // move code to OnTextChanged and fire it from the DeleteText method.
-                Console.WriteLine("changed selection");
-                if (TextChanged != null)
-                {
-					TextChanged(this,
-                                new TextChangedEventArgs(TextChangedEventArgs.OperationType.Deletion,
-                                                         _lastSelectionStart,
-                                                         _lastSelectionEnd - _lastSelectionStart,
-                                                         _lastSelectionText));
-                }
+                OnTextChanged(TextChangedEventArgs.OperationType.Deletion,
+                              _lastSelectionStart,
+                              _lastSelectionEnd - _lastSelectionStart,
+                              _lastSelectionText);
 			}
 			else
 			{
@@ -265,13 +295,10 @@ namespace Synpl.ShellGtk
             {
                 return;
             }
-			if (TextChanged != null) {
-				TextChanged(this, 
-                            new TextChangedEventArgs(TextChangedEventArgs.OperationType.Insertion,
-                                                     args.Pos.Offset - 1,
-                                                     args.Length,
-                                                     args.Text));
-			}
+            OnTextChanged(TextChangedEventArgs.OperationType.Insertion,
+                          args.Pos.Offset - 1,
+                          args.Length,
+                          args.Text);
 		}
 		#endregion
 	}	

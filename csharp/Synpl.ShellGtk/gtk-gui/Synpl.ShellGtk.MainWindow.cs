@@ -61,6 +61,8 @@ namespace Synpl.ShellGtk {
         
         private Gtk.Action IndentAction;
         
+        private Gtk.Action Insert3Action;
+        
         private Gtk.VBox vbox2;
         
         private Gtk.MenuBar menubar3;
@@ -145,6 +147,9 @@ namespace Synpl.ShellGtk {
             this.IndentAction = new Gtk.Action("IndentAction", Mono.Unix.Catalog.GetString("Indent"), null, null);
             this.IndentAction.ShortLabel = Mono.Unix.Catalog.GetString("Indent");
             w1.Add(this.IndentAction, null);
+            this.Insert3Action = new Gtk.Action("Insert3Action", Mono.Unix.Catalog.GetString("Insert 3"), null, null);
+            this.Insert3Action.ShortLabel = Mono.Unix.Catalog.GetString("Insert 3");
+            w1.Add(this.Insert3Action, null);
             this.UIManager.InsertActionGroup(w1, 0);
             this.AddAccelGroup(this.UIManager.AccelGroup);
             this.Name = "Synpl.ShellGtk.MainWindow";
@@ -155,7 +160,7 @@ namespace Synpl.ShellGtk {
             this.vbox2.Name = "vbox2";
             this.vbox2.Spacing = 6;
             // Container child vbox2.Gtk.Box+BoxChild
-            this.UIManager.AddUiFromString("<ui><menubar name='menubar3'><menu name='FileAction' action='FileAction'><menuitem name='NewAction' action='NewAction'/><menuitem name='OpenAction' action='OpenAction'/><menuitem name='SaveAction' action='SaveAction'/><menuitem name='SaveAsAction' action='SaveAsAction'/><menuitem name='ExitAction' action='ExitAction'/></menu><menu name='EditAction' action='EditAction'><menuitem name='CopyAction' action='CopyAction'/><menuitem name='CutAction' action='CutAction'/><menuitem name='PasteAction' action='PasteAction'/><menuitem name='MoveUpAction1' action='MoveUpAction1'/><menuitem name='MoveDownAction1' action='MoveDownAction1'/><menuitem name='IndentAction' action='IndentAction'/></menu><menu name='SelectAction' action='SelectAction'><menuitem name='ExtendToParentAction' action='ExtendToParentAction'/><menuitem name='RestrictChildAction' action='RestrictChildAction'/><menuitem name='SelectPreviousSiblingAction' action='SelectPreviousSiblingAction'/><menuitem name='SelectNextSiblingAction' action='SelectNextSiblingAction'/></menu><menu name='TestAction' action='TestAction'><menuitem name='Insert1Action' action='Insert1Action'/><menuitem name='Insert2Action' action='Insert2Action'/></menu></menubar></ui>");
+            this.UIManager.AddUiFromString("<ui><menubar name='menubar3'><menu name='FileAction' action='FileAction'><menuitem name='NewAction' action='NewAction'/><menuitem name='OpenAction' action='OpenAction'/><menuitem name='SaveAction' action='SaveAction'/><menuitem name='SaveAsAction' action='SaveAsAction'/><menuitem name='ExitAction' action='ExitAction'/></menu><menu name='EditAction' action='EditAction'><menuitem name='CopyAction' action='CopyAction'/><menuitem name='CutAction' action='CutAction'/><menuitem name='PasteAction' action='PasteAction'/><menuitem name='MoveUpAction1' action='MoveUpAction1'/><menuitem name='MoveDownAction1' action='MoveDownAction1'/><menuitem name='IndentAction' action='IndentAction'/></menu><menu name='SelectAction' action='SelectAction'><menuitem name='ExtendToParentAction' action='ExtendToParentAction'/><menuitem name='RestrictChildAction' action='RestrictChildAction'/><menuitem name='SelectPreviousSiblingAction' action='SelectPreviousSiblingAction'/><menuitem name='SelectNextSiblingAction' action='SelectNextSiblingAction'/></menu><menu name='TestAction' action='TestAction'><menuitem name='Insert1Action' action='Insert1Action'/><menuitem name='Insert2Action' action='Insert2Action'/><menuitem name='Insert3Action' action='Insert3Action'/></menu></menubar></ui>");
             this.menubar3 = ((Gtk.MenuBar)(this.UIManager.GetWidget("/menubar3")));
             this.menubar3.Name = "menubar3";
             this.vbox2.Add(this.menubar3);
@@ -204,6 +209,7 @@ namespace Synpl.ShellGtk {
             this.MoveUpAction1.Activated += new System.EventHandler(this.OnMoveUpAction1Activated);
             this.MoveDownAction1.Activated += new System.EventHandler(this.OnMoveDownAction1Activated);
             this.IndentAction.Activated += new System.EventHandler(this.OnIndentActionActivated);
+            this.Insert3Action.Activated += new System.EventHandler(this.OnInsert3ActionActivated);
         }
     }
 }

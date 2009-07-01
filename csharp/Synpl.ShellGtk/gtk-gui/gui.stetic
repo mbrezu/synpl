@@ -138,6 +138,12 @@
         <property name="ShortLabel" translatable="yes">Indent</property>
         <signal name="Activated" handler="OnIndentActionActivated" />
       </action>
+      <action id="Insert3Action">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Insert 3</property>
+        <property name="ShortLabel" translatable="yes">Insert 3</property>
+        <signal name="Activated" handler="OnInsert3ActionActivated" />
+      </action>
     </action-group>
     <property name="MemberName" />
     <property name="Title" translatable="yes">MainWindow</property>
@@ -175,6 +181,7 @@
               <node type="Menu" action="TestAction">
                 <node type="Menuitem" action="Insert1Action" />
                 <node type="Menuitem" action="Insert2Action" />
+                <node type="Menuitem" action="Insert3Action" />
               </node>
             </node>
           </widget>

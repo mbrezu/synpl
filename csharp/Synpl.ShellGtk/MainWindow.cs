@@ -417,6 +417,18 @@ namespace Synpl.ShellGtk
             _selectedTreeStack.Clear();
         }
 
+        protected virtual void OnInsert3ActionActivated (object sender, System.EventArgs e)
+        {
+            _parseTree = null;
+            _editor.DeleteText(0, _editor.Length, false);
+            _editor.InsertText(0, @"
+(list
+    '(some stuff)
+    '(some other stuff)
+    '(1 2 3 4 5))", false);
+            _selectedTreeStack.Clear();
+        }
+
         protected virtual void OnSelectPreviousSiblingActionActivated(object sender,
                                                                       System.EventArgs e)
         {
@@ -541,7 +553,7 @@ namespace Synpl.ShellGtk
             Console.WriteLine("found: {0} {1} {2}", lineStarter.StartPosition, lineStarterLine, lineStarterColumn);
             if (lineStarterColumn < indentColumn)                
             {
-                Console.WriteLine("adding");
+                Console.WriteLine("adding {0}", lineStartOffset);
                 _editor.InsertText(lineStartOffset, 
                                    new String(' ', indentColumn - lineStarterColumn), 
                                    false);
