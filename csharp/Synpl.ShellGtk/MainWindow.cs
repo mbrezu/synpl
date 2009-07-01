@@ -31,9 +31,6 @@ namespace Synpl.ShellGtk
         // TODO: Selection of multiple nodes (to handle extend selection up/down).
         // TODO: Try keyboard accelerators (mode for structured editing).
         // TODO: Pretty printing? :-) This needs some design work.
-        // TODO: Indent (first tree on current line at the same indentation
-        // as the previous node, or slightly indented with regard to the parent
-        // if there is no previous node.
 
         // TODO: Common shell code (independent of the UI) should be extracted to
         // a Synpl.Shell assembly/namespace so it's not duplicated across shells.
