@@ -419,7 +419,7 @@ namespace Synpl.ShellGtk
             _parseTree = null;
             _editor.DeleteText(0, _editor.Length, false);
             _editor.InsertText(0, @"
-(list
+(
     '(some stuff)
     '(some other stuff)
     '(1 2 3 4 5))", false);
@@ -525,43 +525,49 @@ namespace Synpl.ShellGtk
                 return;
             }
             ParseTree lastSibling = lineStarter.GetLastSiblingBefore(lineStartOffset);
-            int indentOffset;
+            int desiredIndentColumn;
             if (lastSibling != null)
             {
+                int indentLine, indentOffset;
                 Console.WriteLine("indent by sibling");
                 indentOffset = lastSibling.StartPosition;
+                _editor.OffsetToLineColumn(indentOffset, out indentLine, out desiredIndentColumn);
             }
             else if (lineStarter.Parent != null)
             {
                 Console.WriteLine("indent by parent");
-                indentOffset = lineStarter.Parent.StartPosition + 2;
+                int indentLine, indentOffset;
+                indentOffset = lineStarter.Parent.StartPosition;
+                _editor.OffsetToLineColumn(indentOffset, out indentLine, out desiredIndentColumn);
+                desiredIndentColumn += 2;
             }
             else
             {
                 return;
             }
-            int indentLine, indentColumn;
-            _editor.OffsetToLineColumn(indentOffset, out indentLine, out indentColumn);
-            Console.WriteLine("desired: {0} {1} {2}", indentOffset, indentLine, indentColumn);
+            Console.WriteLine("desired column: {0}", desiredIndentColumn);
             int lineStarterLine, lineStarterColumn;
             _editor.OffsetToLineColumn(lineStarter.StartPosition, 
                                        out lineStarterLine,
                                        out lineStarterColumn);
-            Console.WriteLine("found: {0} {1} {2}", lineStarter.StartPosition, lineStarterLine, lineStarterColumn);
-            if (lineStarterColumn < indentColumn)                
+            Console.WriteLine("found: {0} {1} {2}", 
+                              lineStarter.StartPosition, 
+                              lineStarterLine, 
+                              lineStarterColumn);
+            if (lineStarterColumn < desiredIndentColumn)                
             {
                 Console.WriteLine("adding {0}", lineStartOffset);
                 _editor.InsertText(lineStartOffset, 
-                                   new String(' ', indentColumn - lineStarterColumn), 
+                                   new String(' ', desiredIndentColumn - lineStarterColumn), 
                                    false);
             }
-            else if (lineStarterColumn > indentColumn)
+            else if (lineStarterColumn > desiredIndentColumn)
             {
                 Console.WriteLine("deleting");
-                _editor.DeleteText(lineStartOffset, lineStarterColumn - indentColumn, false);
+                _editor.DeleteText(lineStartOffset, lineStarterColumn - desiredIndentColumn, false);
             }
         }
-        
+
 		#endregion
 
     }
