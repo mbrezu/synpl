@@ -566,6 +566,10 @@ namespace Synpl.ShellGtk
                 Console.WriteLine("deleting");
                 _editor.DeleteText(lineStartOffset, lineStarterColumn - desiredIndentColumn, false);
             }
+            // We need to clear the selected tree stack as the trees on the stack are no longer
+            // valid.
+            // TODO: store trees on the stack as paths to nodes and do not invalidate on indent?
+            _selectedTreeStack.Clear();
         }
 
 		#endregion
