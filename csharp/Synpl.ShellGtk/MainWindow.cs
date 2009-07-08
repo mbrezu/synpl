@@ -52,6 +52,7 @@ namespace Synpl.ShellGtk
 			ConfigureTextView();
 			_editor = new GtkTextViewEditor(txtEditor);
 			_editor.TextChanged += HandleTextChanged;
+            _editor.KeyStroke += HandleKeyStroke;
 			txtEditor.KeyReleaseEvent += HandleKeyReleaseEvent;
             _text = new TextWithChanges(_editor);
             _selectedTreeStack = new CowList<ParseTree>();
@@ -316,6 +317,10 @@ namespace Synpl.ShellGtk
             _editor.OffsetToLineColumn(offset, out line, out column);
             int selStart, selEnd;
             _editor.GetSelection(out selStart, out selEnd);
+            Console.WriteLine("key: {0} {1} {2}", 
+                              args.Event.Key, 
+                              args.Event.HardwareKeycode, 
+                              args.Event.KeyValue);
             label1.Text = String.Format("Position: {0} {1} {2}; Selection: {3}-{4}", 
                                         offset, 
                                         line, 
@@ -508,68 +513,18 @@ namespace Synpl.ShellGtk
             {
                 return;
             }
-            int currentOffset = _editor.CursorOffset;
-            int currentLine, currentColumn;
-            _editor.OffsetToLineColumn(currentOffset, out currentLine, out currentColumn);
-            if (currentLine == 0)
+            if (_parseTree.Indent(_editor.CursorOffset, _editor))
             {
-                return;
+                // We need to clear the selected tree stack as the trees on the stack are no longer
+                // valid.
+                // TODO: store trees on the stack as paths to nodes and do not invalidate on indent?
+                _selectedTreeStack.Clear();
             }
-            Console.WriteLine("!!! Indenting:");
-            Console.WriteLine("current: {0} {1} {2}", currentOffset, currentLine, currentColumn);
-            int lineStartOffset = _editor.LineColumnToOffset(currentLine, 0);
-            Console.WriteLine("line start:{0}", lineStartOffset);
-            ParseTree lineStarter = _parseTree.GetFirstNodeAfter(lineStartOffset);
-            if (lineStarter == null)
-            {
-                return;
-            }
-            ParseTree lastSibling = lineStarter.GetLastSiblingBefore(lineStartOffset);
-            int desiredIndentColumn;
-            if (lastSibling != null)
-            {
-                int indentLine, indentOffset;
-                Console.WriteLine("indent by sibling");
-                indentOffset = lastSibling.StartPosition;
-                _editor.OffsetToLineColumn(indentOffset, out indentLine, out desiredIndentColumn);
-            }
-            else if (lineStarter.Parent != null)
-            {
-                Console.WriteLine("indent by parent");
-                int indentLine, indentOffset;
-                indentOffset = lineStarter.Parent.StartPosition;
-                _editor.OffsetToLineColumn(indentOffset, out indentLine, out desiredIndentColumn);
-                desiredIndentColumn += 2;
-            }
-            else
-            {
-                return;
-            }
-            Console.WriteLine("desired column: {0}", desiredIndentColumn);
-            int lineStarterLine, lineStarterColumn;
-            _editor.OffsetToLineColumn(lineStarter.StartPosition, 
-                                       out lineStarterLine,
-                                       out lineStarterColumn);
-            Console.WriteLine("found: {0} {1} {2}", 
-                              lineStarter.StartPosition, 
-                              lineStarterLine, 
-                              lineStarterColumn);
-            if (lineStarterColumn < desiredIndentColumn)                
-            {
-                Console.WriteLine("adding {0}", lineStartOffset);
-                _editor.InsertText(lineStartOffset, 
-                                   new String(' ', desiredIndentColumn - lineStarterColumn), 
-                                   false);
-            }
-            else if (lineStarterColumn > desiredIndentColumn)
-            {
-                Console.WriteLine("deleting");
-                _editor.DeleteText(lineStartOffset, lineStarterColumn - desiredIndentColumn, false);
-            }
-            // We need to clear the selected tree stack as the trees on the stack are no longer
-            // valid.
-            // TODO: store trees on the stack as paths to nodes and do not invalidate on indent?
-            _selectedTreeStack.Clear();
+        }
+
+        void HandleKeyStroke(object sender, KeyStrokeEventArgs e)
+        {
+            Console.WriteLine("Keypress: {0}", e.Key.ToString());
         }
 
 		#endregion

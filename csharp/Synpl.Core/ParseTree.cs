@@ -448,6 +448,77 @@ namespace Synpl.Core
             }
             return null;
         }
+
+        // TODO: Add unit test.
+        public string PrettyPrint(int indentLevel, int maxColumn)
+        {
+            return ToStringAsCode(false);
+        }
+
+        // TODO: Add unit test.
+        public bool Indent(int position, IAbstractEditor editor)
+        {
+            int currentLine, currentColumn;
+            editor.OffsetToLineColumn(position, out currentLine, out currentColumn);
+            if (currentLine == 0)
+            {
+                return false;
+            }
+            Console.WriteLine("!!! Indenting:");
+            Console.WriteLine("current: {0} {1} {2}", position, currentLine, currentColumn);
+            int lineStartOffset = editor.LineColumnToOffset(currentLine, 0);
+            Console.WriteLine("line start:{0}", lineStartOffset);
+            ParseTree lineStarter = GetFirstNodeAfter(lineStartOffset);
+            if (lineStarter == null)
+            {
+                return false;
+            }
+            ParseTree lastSibling = lineStarter.GetLastSiblingBefore(lineStartOffset);
+            int desiredIndentColumn;
+            if (lastSibling != null)
+            {
+                int indentLine, indentOffset;
+                Console.WriteLine("indent by sibling");
+                indentOffset = lastSibling.StartPosition;
+                editor.OffsetToLineColumn(indentOffset, out indentLine, out desiredIndentColumn);
+            }
+            else if (lineStarter.Parent != null)
+            {
+                Console.WriteLine("indent by parent");
+                int indentLine, indentOffset;
+                indentOffset = lineStarter.Parent.StartPosition;
+                editor.OffsetToLineColumn(indentOffset, out indentLine, out desiredIndentColumn);
+                desiredIndentColumn += 2;
+            }
+            else
+            {
+                return false;
+            }
+            Console.WriteLine("desired column: {0}", desiredIndentColumn);
+            int lineStarterLine, lineStarterColumn;
+            editor.OffsetToLineColumn(lineStarter.StartPosition, 
+                                       out lineStarterLine,
+                                       out lineStarterColumn);
+            Console.WriteLine("found: {0} {1} {2}", 
+                              lineStarter.StartPosition, 
+                              lineStarterLine, 
+                              lineStarterColumn);
+            if (lineStarterColumn < desiredIndentColumn)                
+            {
+                Console.WriteLine("adding {0}", lineStartOffset);
+                editor.InsertText(lineStartOffset, 
+                                  new String(' ', desiredIndentColumn - lineStarterColumn), 
+                                  false);
+                return true;
+            }
+            else if (lineStarterColumn > desiredIndentColumn)
+            {
+                Console.WriteLine("deleting");
+                editor.DeleteText(lineStartOffset, lineStarterColumn - desiredIndentColumn, false);
+                return true;
+            }
+            return false;
+        }
         #endregion
 
         #region Private Helper Methods

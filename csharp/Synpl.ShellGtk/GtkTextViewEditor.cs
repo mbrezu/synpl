@@ -33,6 +33,9 @@ namespace Synpl.ShellGtk
 		private string _charAfterCursor;
 		private bool _waitForDeletionKey;
         private bool _inhibitTextChanged;
+        private bool _control;
+        private bool _shift;
+        private bool _alt;
 		#endregion
 		
 		#region Constructor
@@ -42,6 +45,10 @@ namespace Synpl.ShellGtk
 			ConfigureEvents();
 			ConfigureTags();
             _waitForDeletionKey = false;
+
+            _control = false;
+            _shift = false;
+            _alt = false;
 		}
 		#endregion
 
@@ -166,6 +173,8 @@ namespace Synpl.ShellGtk
         }
 
 		public event EventHandler<TextChangedEventArgs> TextChanged;
+
+        public event EventHandler<KeyStrokeEventArgs> KeyStroke;
 		#endregion
 
 		#region Private Helper Methods
@@ -227,6 +236,24 @@ namespace Synpl.ShellGtk
                             new TextChangedEventArgs(operation, start, length, text));
             }
         }
+
+        private void OnKeyStroke(Synpl.EditorAbstraction.Key keycode)
+        {
+            if (KeyStroke != null)
+            {
+                KeyStroke(this,
+                          new KeyStrokeEventArgs(keycode));
+            }
+            // HACK: this can be useful to implement nodes.
+            if (keycode.Control && keycode.KeyCode == "F2")
+            {
+                _textView.Editable = false;
+            }
+            if (keycode.Control && keycode.KeyCode == "F3")
+            {
+                _textView.Editable = true;
+            }
+        }
 		#endregion
 				
 		#region Form Event Handlers
@@ -239,10 +266,40 @@ namespace Synpl.ShellGtk
  		void HandleKeyPressEvent(object o, KeyPressEventArgs args)
 		{
 			SaveState();
+            UpdateShiftControAlt(args.Event.Key, true);
 		}
 
 		void HandleKeyReleaseEvent(object o, KeyReleaseEventArgs args)
 		{
+            UpdateShiftControAlt(args.Event.Key, false);
+            if (args.Event.Key >= Gdk.Key.F1 && args.Event.Key <= Gdk.Key.F10)
+            {
+                OnKeyStroke(new Synpl.EditorAbstraction.Key(args.Event.Key.ToString(), 
+                                                            _shift, 
+                                                            _control, 
+                                                            _alt));
+            }
+            else if (args.Event.Key >= Gdk.Key.a && args.Event.Key <= Gdk.Key.z)
+            {
+                OnKeyStroke(new Synpl.EditorAbstraction.Key(args.Event.Key.ToString().ToLower(), 
+                                                            _shift, 
+                                                            _control, 
+                                                            _alt));
+            }
+            else if (args.Event.Key >= Gdk.Key.A && args.Event.Key <= Gdk.Key.Z)
+            {
+                OnKeyStroke(new Synpl.EditorAbstraction.Key(args.Event.Key.ToString().ToLower(), 
+                                                            _shift, 
+                                                            _control, 
+                                                            _alt));
+            }
+            else if (args.Event.Key >= Gdk.Key.Key_0 && args.Event.Key <= Gdk.Key.Key_9)
+            {
+                OnKeyStroke(new Synpl.EditorAbstraction.Key(args.Event.Key.ToString().Substring(4), 
+                                                            _shift, 
+                                                            _control, 
+                                                            _alt));
+            }
 			if (_waitForDeletionKey) 
             {
 				_waitForDeletionKey = false;
@@ -300,6 +357,23 @@ namespace Synpl.ShellGtk
                           args.Length,
                           args.Text);
 		}
+
+        private void UpdateShiftControAlt(Gdk.Key key, bool state)
+        {
+            if (key == Gdk.Key.Shift_L || key == Gdk.Key.Shift_R)
+            {
+                _shift = state;
+            }
+            if (key == Gdk.Key.Control_L || key == Gdk.Key.Control_R)
+            {
+                _control = state;
+            }
+            if (key == Gdk.Key.Alt_L || key == Gdk.Key.Alt_R)
+            {
+                _alt = state;
+            }
+        }
+
 		#endregion
 	}	
 }
