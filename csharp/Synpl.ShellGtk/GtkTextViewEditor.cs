@@ -19,6 +19,7 @@ using System;
 using Gtk;
 using System.Collections.Generic;
 using Synpl.EditorAbstraction;
+using System.Text;
 
 namespace Synpl.ShellGtk
 {
@@ -49,10 +50,23 @@ namespace Synpl.ShellGtk
             _control = false;
             _shift = false;
             _alt = false;
+
 		}
 		#endregion
 
 		#region Implementation of IAbstractEditor
+
+        public bool Editable
+        {
+            get
+            {
+                return _textView.Editable;
+            }
+            set
+            {
+                _textView.Editable = value;
+            }
+        }
         
 		public int Length
 		{
@@ -117,7 +131,7 @@ namespace Synpl.ShellGtk
             // the wrong start position in the insert event), we do the triggering
             // ourselves.
 			TextIter start = _textView.Buffer.GetIterAtOffset(position);
-            Console.WriteLine("InsertText: {0} {1}", position, start.Offset);
+//            Console.WriteLine("InsertText: {0} {1}", position, start.Offset);
 			_textView.Buffer.Insert(ref start, text);
             if (!inhibitTextChanged)
             {
@@ -216,12 +230,12 @@ namespace Synpl.ShellGtk
     			_charAfterCursor = atCursor.Char;
     			atCursor.BackwardChar();
     			_charBeforeCursor = atCursor.Char;
-                Console.WriteLine("save state");
-                Console.WriteLine("sel: {0}-{1}, chars: '{2}' | '{3}'",
-                                  _lastSelectionStart,
-                                  _lastSelectionEnd,
-                                  _charBeforeCursor,
-                                  _charAfterCursor);
+//                Console.WriteLine("save state");
+//                Console.WriteLine("sel: {0}-{1}, chars: '{2}' | '{3}'",
+//                                  _lastSelectionStart,
+//                                  _lastSelectionEnd,
+//                                  _charBeforeCursor,
+//                                  _charAfterCursor);
             }
 		}
 
@@ -244,22 +258,13 @@ namespace Synpl.ShellGtk
                 KeyStroke(this,
                           new KeyStrokeEventArgs(keycode));
             }
-            // HACK: this can be useful to implement nodes.
-            if (keycode.Control && keycode.KeyCode == "F2")
-            {
-                _textView.Editable = false;
-            }
-            if (keycode.Control && keycode.KeyCode == "F3")
-            {
-                _textView.Editable = true;
-            }
         }
 		#endregion
 				
 		#region Form Event Handlers
         void HandleMarkSet(object o, MarkSetArgs args)
         {
-            Console.WriteLine("markSet");
+//            Console.WriteLine("markSet");
             SaveState();
         }
 
@@ -327,10 +332,8 @@ namespace Synpl.ShellGtk
 
 		private void HandleDeleteRange(object o, DeleteRangeArgs args)
 		{
-            Console.WriteLine("In deleteeee");
             if (_inhibitTextChanged)
             {
-                Console.WriteLine("delete inhibited.");
                 return;
             }
 			if (_lastSelectionEnd != _lastSelectionStart)

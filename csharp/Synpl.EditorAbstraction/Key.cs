@@ -16,6 +16,7 @@
 // // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 using System;
+using System.Text;
 
 namespace Synpl.EditorAbstraction
 {
@@ -55,11 +56,6 @@ namespace Synpl.EditorAbstraction
         #endregion
 
         #region Constructor
-        public Key(string keycode)
-        {
-            _keycode = keycode;
-        }
-        
         public Key(string keycode, bool shift, bool control, bool alt)
         {
             _keycode = keycode;
@@ -67,18 +63,76 @@ namespace Synpl.EditorAbstraction
             _control = control;
             _alt = alt;
         }
+
+        public Key(string emacsKeyStr)
+        {
+            int parseOffset = 0;
+            while (parseOffset < emacsKeyStr.Length)
+            {
+                if (parseOffset + 2 <= emacsKeyStr.Length 
+                    && emacsKeyStr.Substring(parseOffset, 2) == "C-")
+                {
+                    parseOffset += 2;
+                    _control = true;
+                }
+                else if (parseOffset + 2 <= emacsKeyStr.Length 
+                         && emacsKeyStr.Substring(parseOffset, 2) == "S-")
+                {
+                    parseOffset += 2;
+                    _shift = true;
+                }
+                else if (parseOffset + 2 <= emacsKeyStr.Length 
+                         && emacsKeyStr.Substring(parseOffset, 2) == "A-")
+                {
+                    parseOffset += 2;
+                    _alt = true;
+                }
+                else
+                {
+                    _keycode = emacsKeyStr.Substring(parseOffset);
+                    parseOffset = emacsKeyStr.Length;
+                }
+            }
+        }
         #endregion
 
         #region Public Constructor
         public override string ToString ()
         {
-            return string.Format("[Key: Alt={0}, Control={1}, Shift={2}, KeyCode={3}]", 
-                                 Alt, 
-                                 Control, 
-                                 Shift, 
-                                 KeyCode);
+            StringBuilder sb = new StringBuilder();
+            if (_control)
+            {
+                sb.Append("C-");
+            }
+            if (_alt)
+            {
+                sb.Append("A-");
+            }
+            if (_shift)
+            {
+                sb.Append("S-");
+            }
+            sb.Append(_keycode);
+            return sb.ToString();
         }
 
+        public override bool Equals (object obj)
+        {
+            Key other = obj as Key;
+            if (other == null)
+            {
+                return false;
+            }
+            return _keycode.ToLower() == other._keycode.ToLower()
+                   && _alt == other._alt
+                   && _control == other._control
+                   && _shift == other._shift;
+        }
+
+        public override int GetHashCode ()
+        {
+            return ToString().GetHashCode();
+        }
         #endregion
     }
 }

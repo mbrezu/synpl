@@ -22,6 +22,7 @@ using Synpl.EditorAbstraction;
 using System.Collections.Generic;
 using Synpl.Core;
 using Synpl.Parser.Sexp;
+using System.Text;
 
 namespace Synpl.ShellGtk
 {
@@ -43,6 +44,7 @@ namespace Synpl.ShellGtk
         // to test the functionality of the GtkTextViewEditor class
         private string _clipboard = String.Empty;
         private CowList<ParseTree> _selectedTreeStack;
+        private Queue<Synpl.EditorAbstraction.Key> _chordBuffer;
 		#endregion
 		
 		#region Constructor
@@ -57,6 +59,7 @@ namespace Synpl.ShellGtk
             _text = new TextWithChanges(_editor);
             _selectedTreeStack = new CowList<ParseTree>();
 			ShowAll();
+            _chordBuffer = new Queue<Synpl.EditorAbstraction.Key>();
 		}
 
         private void CompleteReparse()
@@ -133,7 +136,7 @@ namespace Synpl.ShellGtk
 //                    Console.WriteLine(">>> After delete:");
                     break;
                 default:
-                    Console.WriteLine("Unknown text change operation.");
+//                    Console.WriteLine("Unknown text change operation.");
                     break;
                 }
 //                Console.WriteLine(">>> Code tree is:{0}{1}", 
@@ -249,18 +252,47 @@ namespace Synpl.ShellGtk
 		#region Editor Event Handlers
 		private void HandleTextChanged(object sender, TextChangedEventArgs e)
 		{
-            Console.WriteLine("************************");
-            Console.WriteLine("TWC before: {0}", _text.TestRender());
+//            Console.WriteLine("************************");
+//            Console.WriteLine("TWC before: {0}", _text.TestRender());
             UpdateTextWithChanges(e);
             TryParsing(e);
             UpdateFormatting();
-			Console.WriteLine(">>> {0}", e.Operation);
-			Console.WriteLine("{0}, {1}: \"{2}\"", e.Start, e.Length, e.Text);
-            Console.WriteLine("TWC after: {0}", _text.TestRender());
+//			Console.WriteLine(">>> {0}", e.Operation);
+//			Console.WriteLine("{0}, {1}: \"{2}\"", e.Start, e.Length, e.Text);
+//            Console.WriteLine("TWC after: {0}", _text.TestRender());
 		}
 		#endregion
 		
 		#region Private Helper Methods
+        private bool TypedChord(string chordStr)
+        {
+            string[] keysStr = chordStr.Split(' ');
+            if (keysStr.Length > _chordBuffer.Count)
+            {
+                return false;
+            }
+            List<Synpl.EditorAbstraction.Key> chord = new List<Synpl.EditorAbstraction.Key>();
+            foreach (string key in keysStr)
+            {
+                chord.Add(new Synpl.EditorAbstraction.Key(key));
+            }
+            Synpl.EditorAbstraction.Key[] queue = _chordBuffer.ToArray();
+            int queueIdx = queue.Length - 1;
+            int chordIdx = chord.Count - 1;
+            while (chordIdx >= 0)
+            {
+                Console.WriteLine("{0} ?= {1}", chord[chordIdx], queue[queueIdx]);
+                Console.WriteLine(chord[chordIdx].ToString() != queue[queueIdx].ToString());
+                if (chord[chordIdx].ToString() != queue[queueIdx].ToString())
+                {
+                    return false;
+                }
+                chordIdx --;
+                queueIdx --;
+            }
+            return true;
+        }
+        
 		private void ConfigureTextView()
 		{
 			FontDescription fontDescription = new FontDescription();
@@ -317,10 +349,6 @@ namespace Synpl.ShellGtk
             _editor.OffsetToLineColumn(offset, out line, out column);
             int selStart, selEnd;
             _editor.GetSelection(out selStart, out selEnd);
-            Console.WriteLine("key: {0} {1} {2}", 
-                              args.Event.Key, 
-                              args.Event.HardwareKeycode, 
-                              args.Event.KeyValue);
             label1.Text = String.Format("Position: {0} {1} {2}; Selection: {3}-{4}", 
                                         offset, 
                                         line, 
@@ -524,7 +552,28 @@ namespace Synpl.ShellGtk
 
         void HandleKeyStroke(object sender, KeyStrokeEventArgs e)
         {
-            Console.WriteLine("Keypress: {0}", e.Key.ToString());
+//            Console.WriteLine("Keypress: {0}", e.Key.ToString());
+            _chordBuffer.Enqueue(e.Key);
+            while (_chordBuffer.Count > 5)
+            {
+                _chordBuffer.Dequeue();
+            }
+            StringBuilder sb = new StringBuilder();
+            foreach (var key in _chordBuffer.ToArray())
+            {
+                sb.AppendFormat("{0} ", key.ToString());
+            }
+            Console.WriteLine("chord buffer: {0}", sb.ToString());
+            if (TypedChord("C-x C-x") && _editor.Editable)
+            { 
+                Console.WriteLine("disabled editing");
+                _editor.Editable = false;
+            }
+            if (TypedChord("C-g") && !_editor.Editable)
+            {
+                Console.WriteLine("enabled editing");
+                _editor.Editable = true;
+            }            
         }
 
 		#endregion

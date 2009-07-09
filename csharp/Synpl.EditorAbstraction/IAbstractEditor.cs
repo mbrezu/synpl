@@ -48,6 +48,7 @@ namespace Synpl.EditorAbstraction
 
         #region Keyboard events
         event EventHandler<KeyStrokeEventArgs> KeyStroke;
+        bool Editable { get; set; }
         #endregion
 	}
 }
