@@ -45,6 +45,7 @@ namespace Synpl.ShellGtk
         private string _clipboard = String.Empty;
         private CowList<ParseTree> _selectedTreeStack;
         private Queue<Synpl.EditorAbstraction.Key> _chordBuffer;
+        private string _structureModeAction = "m";
 		#endregion
 		
 		#region Constructor
@@ -262,8 +263,8 @@ namespace Synpl.ShellGtk
 //            Console.WriteLine("TWC after: {0}", _text.TestRender());
 		}
 		#endregion
-		
-		#region Private Helper Methods
+
+        #region Shell Code
         private bool TypedChord(string chordStr)
         {
             string[] keysStr = chordStr.Split(' ');
@@ -293,13 +294,148 @@ namespace Synpl.ShellGtk
             return true;
         }
         
-		private void ConfigureTextView()
-		{
-			FontDescription fontDescription = new FontDescription();
-			fontDescription.Family = "Bitstream Vera Sans Mono";
-			fontDescription.AbsoluteSize = 15000;
-			txtEditor.ModifyFont(fontDescription);
-		}
+        private void ExtendToParent()
+        {
+            if (_parseTree == null)
+            {
+                return;
+            }
+            ValidateSelectionStack();
+            int selStart, selEnd;
+            _editor.GetSelection(out selStart, out selEnd);
+            if (_selectedTreeStack.Count == 0 || !_selectedTreeStack.Last.Contains(selStart))
+            {
+                _selectedTreeStack.Clear();
+                CowList<ParseTree> pts = _parseTree.GetPathForPosition(selStart);
+                if (pts.Count == 0)
+                {
+                    return;
+                }
+                _selectedTreeStack.Add(pts.Last);
+            }
+            else
+            {
+                if (_selectedTreeStack.Last.Parent != null)
+                {
+                    _selectedTreeStack.Add(_selectedTreeStack.Last.Parent);
+                }
+            }
+            _editor.SetSelection(_selectedTreeStack.Last.StartPosition, 
+                                 _selectedTreeStack.Last.EndPosition);
+        }
+
+        private void LastSelection()
+        {
+            ValidateSelectionStack();
+            if (_selectedTreeStack.Count >= 2)
+            {
+                _selectedTreeStack.RemoveAt(_selectedTreeStack.Count - 1);
+                _editor.SetSelection(_selectedTreeStack.Last.StartPosition, 
+                                     _selectedTreeStack.Last.EndPosition);
+            }            
+        }
+
+        private void SelectPreviousSibling()
+        {
+            if (_selectedTreeStack.Count > 0)
+            {
+                ParseTree prev = _selectedTreeStack.Last.GetPreviousSibling();
+                if (prev != null)
+                {
+                    _selectedTreeStack.Add(prev);
+                    _editor.SetSelection(_selectedTreeStack.Last.StartPosition,
+                                         _selectedTreeStack.Last.EndPosition);
+                }
+            }
+        }
+
+        private void SelectNextSibling()
+        {
+            if (_selectedTreeStack.Count > 0)
+            {
+                ParseTree next = _selectedTreeStack.Last.GetNextSibling();
+                if (next != null)
+                {
+                    _selectedTreeStack.Add(next);
+                    _editor.SetSelection(_selectedTreeStack.Last.StartPosition,
+                                         _selectedTreeStack.Last.EndPosition);
+                }
+            }
+        }
+
+        private void MoveUp()
+        {
+            if (_parseTree == null)
+            {
+                return;
+            }
+            if (_selectedTreeStack.Count == 0)
+            {
+                return;
+            }
+            CowList<int> path = _selectedTreeStack.Last.GetPath();
+            if (path.Count > 0)
+            {
+                if (path.Last > 0)
+                {
+                    path.Last --;
+                }
+            }
+            ParseTree newRoot = _selectedTreeStack.Last.MoveUp();
+            UpdateSelection(newRoot, path);
+        }
+
+        private void MoveDown()
+        {
+            if (_parseTree == null)
+            {
+                return;
+            }
+            if (_selectedTreeStack.Count == 0)
+            {
+                return;
+            }
+            CowList<int> path = _selectedTreeStack.Last.GetPath();
+            if (path.Count > 0)
+            {
+                if (path.Last < _selectedTreeStack.Last.Parent.SubTrees.Count - 1)
+                {
+                    path.Last ++;
+                }
+            }
+            ParseTree newRoot = _selectedTreeStack.Last.MoveDown();
+            UpdateSelection(newRoot, path);
+        }
+
+        private void Indent()
+        {
+            if (_parseTree == null)
+            {
+                return;
+            }
+            if (_parseTree.Indent(_editor.CursorOffset, _editor))
+            {
+                // We need to clear the selected tree stack as the trees on the stack are no longer
+                // valid.
+                // TODO: store trees on the stack as paths to nodes and do not invalidate on indent?
+                _selectedTreeStack.Clear();
+            }
+        }
+
+        private bool InStructureMode()
+        {
+            return !_editor.Editable;
+        }
+
+        private void EnterStructureMode()
+        {
+            _editor.Editable = false;
+        }
+
+        private void ExitStructureMode()
+        {
+            _editor.Editable = true;
+        }        
 
         private string GetSelectedText()
         {
@@ -333,6 +469,17 @@ namespace Synpl.ShellGtk
                                      _selectedTreeStack.Last.EndPosition);                
             }
         }
+        #endregion
+		
+		#region Private Helper Methods
+        
+		private void ConfigureTextView()
+		{
+			FontDescription fontDescription = new FontDescription();
+			fontDescription.Family = "Bitstream Vera Sans Mono";
+			fontDescription.AbsoluteSize = 15000;
+			txtEditor.ModifyFont(fontDescription);
+		}
 		#endregion
 		
 		#region Form Event Handlers
@@ -363,7 +510,7 @@ namespace Synpl.ShellGtk
 //			hints.Add(new FormattingHint(8, 12, "comment"));
 //			_editor.RequestFormatting(0, _editor.Length, hints);
 		}
-
+        
         protected virtual void OnExitActionActivated(object sender, System.EventArgs e)
         {
             Application.Quit();
@@ -393,50 +540,9 @@ namespace Synpl.ShellGtk
             ExtendToParent();
         }
 
-        private void ExtendToParent()
-        {
-            if (_parseTree == null)
-            {
-                return;
-            }
-            ValidateSelectionStack();
-            int selStart, selEnd;
-            _editor.GetSelection(out selStart, out selEnd);
-            if (_selectedTreeStack.Count == 0 || !_selectedTreeStack.Last.Contains(selStart))
-            {
-                _selectedTreeStack.Clear();
-                CowList<ParseTree> pts = _parseTree.GetPathForPosition(selStart);
-                if (pts.Count == 0)
-                {
-                    return;
-                }
-                _selectedTreeStack.Add(pts.Last);
-            }
-            else
-            {
-                if (_selectedTreeStack.Last.Parent != null)
-                {
-                    _selectedTreeStack.Add(_selectedTreeStack.Last.Parent);
-                }
-            }
-            _editor.SetSelection(_selectedTreeStack.Last.StartPosition, 
-                                 _selectedTreeStack.Last.EndPosition);
-        }
-
         protected virtual void OnRestrictChildActionActivated (object sender, System.EventArgs e)
         {
             LastSelection();
-        }
-
-        private void LastSelection()
-        {
-            ValidateSelectionStack();
-            if (_selectedTreeStack.Count >= 2)
-            {
-                _selectedTreeStack.RemoveAt(_selectedTreeStack.Count - 1);
-                _editor.SetSelection(_selectedTreeStack.Last.StartPosition, 
-                                     _selectedTreeStack.Last.EndPosition);
-            }            
         }
 
         protected virtual void OnInsert1ActionActivated (object sender, System.EventArgs e)
@@ -475,84 +581,22 @@ namespace Synpl.ShellGtk
             SelectPreviousSibling();
         }
 
-        private void SelectPreviousSibling()
-        {
-            if (_selectedTreeStack.Count > 0)
-            {
-                ParseTree prev = _selectedTreeStack.Last.GetPreviousSibling();
-                if (prev != null)
-                {
-                    _selectedTreeStack.Add(prev);
-                    _editor.SetSelection(_selectedTreeStack.Last.StartPosition,
-                                         _selectedTreeStack.Last.EndPosition);
-                }
-            }
-        }
-
         protected virtual void OnSelectNextSiblingActionActivated(object sender,
                                                                   System.EventArgs e)
         {
             SelectNextSibling();
         }
 
-        private void SelectNextSibling()
-        {
-            if (_selectedTreeStack.Count > 0)
-            {
-                ParseTree next = _selectedTreeStack.Last.GetNextSibling();
-                if (next != null)
-                {
-                    _selectedTreeStack.Add(next);
-                    _editor.SetSelection(_selectedTreeStack.Last.StartPosition,
-                                         _selectedTreeStack.Last.EndPosition);
-                }
-            }
-        }
-
         protected virtual void OnMoveUpAction1Activated(object sender,
                                                         System.EventArgs e)
         {
-            if (_parseTree == null)
-            {
-                return;
-            }
-            if (_selectedTreeStack.Count == 0)
-            {
-                return;
-            }
-            CowList<int> path = _selectedTreeStack.Last.GetPath();
-            if (path.Count > 0)
-            {
-                if (path.Last > 0)
-                {
-                    path.Last --;
-                }
-            }
-            ParseTree newRoot = _selectedTreeStack.Last.MoveUp();
-            UpdateSelection(newRoot, path);
+            MoveUp();
         }
 
         protected virtual void OnMoveDownAction1Activated(object sender,
                                                           System.EventArgs e)
         {
-            if (_parseTree == null)
-            {
-                return;
-            }
-            if (_selectedTreeStack.Count == 0)
-            {
-                return;
-            }
-            CowList<int> path = _selectedTreeStack.Last.GetPath();
-            if (path.Count > 0)
-            {
-                if (path.Last < _selectedTreeStack.Last.Parent.SubTrees.Count - 1)
-                {
-                    path.Last ++;
-                }
-            }
-            ParseTree newRoot = _selectedTreeStack.Last.MoveDown();
-            UpdateSelection(newRoot, path);
+            MoveDown();
         }
 
         protected virtual void OnIndentActionActivated (object sender, System.EventArgs e)
@@ -560,25 +604,7 @@ namespace Synpl.ShellGtk
             Indent();
         }
 
-        private void Indent()
-        {
-            if (_parseTree == null)
-            {
-                return;
-            }
-            if (_parseTree.Indent(_editor.CursorOffset, _editor))
-            {
-                // We need to clear the selected tree stack as the trees on the stack are no longer
-                // valid.
-                // TODO: store trees on the stack as paths to nodes and do not invalidate on indent?
-                _selectedTreeStack.Clear();
-            }
-        }
-
-        private string _structureModeAction = "m";
-
         // TODO: Editing modes, reorganize code, move to an AbstractShell.
-        // TODO: Handle moving nodes using the keyboard
         // TODO: Write a simple pretty printer for the sexp list.
         private void HandleKeyStroke(object sender, KeyStrokeEventArgs e)
         {
@@ -659,6 +685,9 @@ namespace Synpl.ShellGtk
                     case "m":
                         SelectPreviousSibling();
                         break;
+                    case "t":
+                        MoveUp();
+                        break;
                     }
                 }
                 else if (TypedChord("d"))
@@ -668,26 +697,13 @@ namespace Synpl.ShellGtk
                     case "m":
                         SelectNextSibling();
                         break;
+                    case "t":
+                        MoveDown();
+                        break;
                     }
                 }
             }
         }
-
-        private bool InStructureMode()
-        {
-            return !_editor.Editable;
-        }
-
-        private void EnterStructureMode()
-        {
-            _editor.Editable = false;
-        }
-
-        private void ExitStructureMode()
-        {
-            _editor.Editable = true;
-        }
-
 		#endregion
 
     }
