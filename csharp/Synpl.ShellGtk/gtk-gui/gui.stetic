@@ -26,24 +26,6 @@
         <property name="Label" translatable="yes">Edit</property>
         <property name="ShortLabel" translatable="yes">Edit</property>
       </action>
-      <action id="CopyAction">
-        <property name="Type">Action</property>
-        <property name="Label" translatable="yes">Copy</property>
-        <property name="ShortLabel" translatable="yes">Copy</property>
-        <signal name="Activated" handler="OnCopyActionActivated" />
-      </action>
-      <action id="CutAction">
-        <property name="Type">Action</property>
-        <property name="Label" translatable="yes">Cut</property>
-        <property name="ShortLabel" translatable="yes">Cut</property>
-        <signal name="Activated" handler="OnCutActionActivated" />
-      </action>
-      <action id="PasteAction">
-        <property name="Type">Action</property>
-        <property name="Label" translatable="yes">Paste</property>
-        <property name="ShortLabel" translatable="yes">Paste</property>
-        <signal name="Activated" handler="OnPasteActionActivated" />
-      </action>
       <action id="NewAction">
         <property name="Type">Action</property>
         <property name="Label" translatable="yes">_New</property>
@@ -165,9 +147,6 @@
                 <node type="Menuitem" action="ExitAction" />
               </node>
               <node type="Menu" action="EditAction">
-                <node type="Menuitem" action="CopyAction" />
-                <node type="Menuitem" action="CutAction" />
-                <node type="Menuitem" action="PasteAction" />
                 <node type="Menuitem" action="MoveUpAction1" />
                 <node type="Menuitem" action="MoveDownAction1" />
                 <node type="Menuitem" action="IndentAction" />

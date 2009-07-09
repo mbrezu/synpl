@@ -21,12 +21,6 @@ namespace Synpl.ShellGtk {
         
         private Gtk.Action EditAction;
         
-        private Gtk.Action CopyAction;
-        
-        private Gtk.Action CutAction;
-        
-        private Gtk.Action PasteAction;
-        
         private Gtk.Action NewAction;
         
         private Gtk.Action OpenAction;
@@ -87,15 +81,6 @@ namespace Synpl.ShellGtk {
             this.EditAction = new Gtk.Action("EditAction", Mono.Unix.Catalog.GetString("Edit"), null, null);
             this.EditAction.ShortLabel = Mono.Unix.Catalog.GetString("Edit");
             w1.Add(this.EditAction, null);
-            this.CopyAction = new Gtk.Action("CopyAction", Mono.Unix.Catalog.GetString("Copy"), null, null);
-            this.CopyAction.ShortLabel = Mono.Unix.Catalog.GetString("Copy");
-            w1.Add(this.CopyAction, null);
-            this.CutAction = new Gtk.Action("CutAction", Mono.Unix.Catalog.GetString("Cut"), null, null);
-            this.CutAction.ShortLabel = Mono.Unix.Catalog.GetString("Cut");
-            w1.Add(this.CutAction, null);
-            this.PasteAction = new Gtk.Action("PasteAction", Mono.Unix.Catalog.GetString("Paste"), null, null);
-            this.PasteAction.ShortLabel = Mono.Unix.Catalog.GetString("Paste");
-            w1.Add(this.PasteAction, null);
             this.NewAction = new Gtk.Action("NewAction", Mono.Unix.Catalog.GetString("_New"), null, null);
             this.NewAction.ShortLabel = Mono.Unix.Catalog.GetString("New");
             w1.Add(this.NewAction, null);
@@ -160,7 +145,7 @@ namespace Synpl.ShellGtk {
             this.vbox2.Name = "vbox2";
             this.vbox2.Spacing = 6;
             // Container child vbox2.Gtk.Box+BoxChild
-            this.UIManager.AddUiFromString("<ui><menubar name='menubar3'><menu name='FileAction' action='FileAction'><menuitem name='NewAction' action='NewAction'/><menuitem name='OpenAction' action='OpenAction'/><menuitem name='SaveAction' action='SaveAction'/><menuitem name='SaveAsAction' action='SaveAsAction'/><menuitem name='ExitAction' action='ExitAction'/></menu><menu name='EditAction' action='EditAction'><menuitem name='CopyAction' action='CopyAction'/><menuitem name='CutAction' action='CutAction'/><menuitem name='PasteAction' action='PasteAction'/><menuitem name='MoveUpAction1' action='MoveUpAction1'/><menuitem name='MoveDownAction1' action='MoveDownAction1'/><menuitem name='IndentAction' action='IndentAction'/></menu><menu name='SelectAction' action='SelectAction'><menuitem name='ExtendToParentAction' action='ExtendToParentAction'/><menuitem name='RestrictChildAction' action='RestrictChildAction'/><menuitem name='SelectPreviousSiblingAction' action='SelectPreviousSiblingAction'/><menuitem name='SelectNextSiblingAction' action='SelectNextSiblingAction'/></menu><menu name='TestAction' action='TestAction'><menuitem name='Insert1Action' action='Insert1Action'/><menuitem name='Insert2Action' action='Insert2Action'/><menuitem name='Insert3Action' action='Insert3Action'/></menu></menubar></ui>");
+            this.UIManager.AddUiFromString("<ui><menubar name='menubar3'><menu name='FileAction' action='FileAction'><menuitem name='NewAction' action='NewAction'/><menuitem name='OpenAction' action='OpenAction'/><menuitem name='SaveAction' action='SaveAction'/><menuitem name='SaveAsAction' action='SaveAsAction'/><menuitem name='ExitAction' action='ExitAction'/></menu><menu name='EditAction' action='EditAction'><menuitem name='MoveUpAction1' action='MoveUpAction1'/><menuitem name='MoveDownAction1' action='MoveDownAction1'/><menuitem name='IndentAction' action='IndentAction'/></menu><menu name='SelectAction' action='SelectAction'><menuitem name='ExtendToParentAction' action='ExtendToParentAction'/><menuitem name='RestrictChildAction' action='RestrictChildAction'/><menuitem name='SelectPreviousSiblingAction' action='SelectPreviousSiblingAction'/><menuitem name='SelectNextSiblingAction' action='SelectNextSiblingAction'/></menu><menu name='TestAction' action='TestAction'><menuitem name='Insert1Action' action='Insert1Action'/><menuitem name='Insert2Action' action='Insert2Action'/><menuitem name='Insert3Action' action='Insert3Action'/></menu></menubar></ui>");
             this.menubar3 = ((Gtk.MenuBar)(this.UIManager.GetWidget("/menubar3")));
             this.menubar3.Name = "menubar3";
             this.vbox2.Add(this.menubar3);
@@ -197,9 +182,6 @@ namespace Synpl.ShellGtk {
             this.Show();
             this.DeleteEvent += new Gtk.DeleteEventHandler(this.OnDeleteEvent);
             this.ExitAction.Activated += new System.EventHandler(this.OnExitActionActivated);
-            this.CopyAction.Activated += new System.EventHandler(this.OnCopyActionActivated);
-            this.CutAction.Activated += new System.EventHandler(this.OnCutActionActivated);
-            this.PasteAction.Activated += new System.EventHandler(this.OnPasteActionActivated);
             this.ExtendToParentAction.Activated += new System.EventHandler(this.OnExtendToParentActionActivated);
             this.SelectPreviousSiblingAction.Activated += new System.EventHandler(this.OnSelectPreviousSiblingActionActivated);
             this.SelectNextSiblingAction.Activated += new System.EventHandler(this.OnSelectNextSiblingActionActivated);

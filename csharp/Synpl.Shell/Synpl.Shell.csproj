@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{FE1927D7-B6BA-4053-A15A-5A447B311B74}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Synpl.Shell</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Shell.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Synpl.EditorAbstraction\Synpl.EditorAbstraction.csproj">
+      <Project>{7660753C-030E-45B4-BE6A-43A6581E4EF9}</Project>
+      <Name>Synpl.EditorAbstraction</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Synpl.Core\Synpl.Core.csproj">
+      <Project>{72DF437D-4699-4D32-B331-03E24F4D4997}</Project>
+      <Name>Synpl.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Synpl.Parser\Synpl.Parser.Sexp\Synpl.Parser.Sexp.csproj">
+      <Project>{E0623D9D-5B93-4D4B-B0C0-50A664264C35}</Project>
+      <Name>Synpl.Parser.Sexp</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

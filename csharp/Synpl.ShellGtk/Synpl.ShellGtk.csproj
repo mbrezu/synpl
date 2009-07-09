@@ -73,5 +73,9 @@
       <Project>{72DF437D-4699-4D32-B331-03E24F4D4997}</Project>
       <Name>Synpl.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Synpl.Shell\Synpl.Shell.csproj">
+      <Project>{FE1927D7-B6BA-4053-A15A-5A447B311B74}</Project>
+      <Name>Synpl.Shell</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>
