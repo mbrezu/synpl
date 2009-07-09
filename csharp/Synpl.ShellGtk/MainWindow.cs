@@ -390,6 +390,11 @@ namespace Synpl.ShellGtk
 
         protected virtual void OnExtendToParentActionActivated(object sender, System.EventArgs e)
         {
+            ExtendToParent();
+        }
+
+        private void ExtendToParent()
+        {
             if (_parseTree == null)
             {
                 return;
@@ -419,6 +424,11 @@ namespace Synpl.ShellGtk
         }
 
         protected virtual void OnRestrictChildActionActivated (object sender, System.EventArgs e)
+        {
+            LastSelection();
+        }
+
+        private void LastSelection()
         {
             ValidateSelectionStack();
             if (_selectedTreeStack.Count >= 2)
@@ -462,6 +472,11 @@ namespace Synpl.ShellGtk
         protected virtual void OnSelectPreviousSiblingActionActivated(object sender,
                                                                       System.EventArgs e)
         {
+            SelectPreviousSibling();
+        }
+
+        private void SelectPreviousSibling()
+        {
             if (_selectedTreeStack.Count > 0)
             {
                 ParseTree prev = _selectedTreeStack.Last.GetPreviousSibling();
@@ -476,6 +491,11 @@ namespace Synpl.ShellGtk
 
         protected virtual void OnSelectNextSiblingActionActivated(object sender,
                                                                   System.EventArgs e)
+        {
+            SelectNextSibling();
+        }
+
+        private void SelectNextSibling()
         {
             if (_selectedTreeStack.Count > 0)
             {
@@ -537,6 +557,11 @@ namespace Synpl.ShellGtk
 
         protected virtual void OnIndentActionActivated (object sender, System.EventArgs e)
         {
+            Indent();
+        }
+
+        private void Indent()
+        {
             if (_parseTree == null)
             {
                 return;
@@ -550,7 +575,12 @@ namespace Synpl.ShellGtk
             }
         }
 
-        void HandleKeyStroke(object sender, KeyStrokeEventArgs e)
+        private string _structureModeAction = "m";
+
+        // TODO: Editing modes, reorganize code, move to an AbstractShell.
+        // TODO: Handle moving nodes using the keyboard
+        // TODO: Write a simple pretty printer for the sexp list.
+        private void HandleKeyStroke(object sender, KeyStrokeEventArgs e)
         {
 //            Console.WriteLine("Keypress: {0}", e.Key.ToString());
             _chordBuffer.Enqueue(e.Key);
@@ -564,16 +594,98 @@ namespace Synpl.ShellGtk
                 sb.AppendFormat("{0} ", key.ToString());
             }
             Console.WriteLine("chord buffer: {0}", sb.ToString());
-            if (TypedChord("C-x C-x") && _editor.Editable)
+            if (TypedChord("C-x C-t") && !InStructureMode())
             { 
-                Console.WriteLine("disabled editing");
-                _editor.Editable = false;
+                EnterStructureMode();
             }
-            if (TypedChord("C-g") && !_editor.Editable)
+            else if (TypedChord("C-g") && InStructureMode())
             {
-                Console.WriteLine("enabled editing");
-                _editor.Editable = true;
-            }            
+                ExitStructureMode();
+            }
+            else if (TypedChord("C-n"))
+            {
+                _editor.MoveForwardLines(1);
+            }
+            else if (TypedChord("C-p"))
+            {
+                _editor.MoveForwardLines(-1);
+            }
+            else if (TypedChord("C-b"))
+            {
+                _editor.MoveForwardChars(-1);
+            }
+            else if (TypedChord("C-f"))
+            {
+                _editor.MoveForwardChars(1);
+            }
+            if (InStructureMode())
+            {
+                if (TypedChord("q"))
+                {
+                    ExitStructureMode();
+                }
+                else if (TypedChord("i"))
+                {
+                    Indent();
+                }
+                else if (TypedChord("p"))
+                {
+                    ExtendToParent();
+                }
+                else if (TypedChord("l"))
+                {
+                    LastSelection();
+                }
+                else if (TypedChord("m"))
+                {
+                    _structureModeAction = "m";
+                }
+                else if (TypedChord("r"))
+                {
+                    _structureModeAction = "r";
+                }
+                else if (TypedChord("x"))
+                {
+                    _structureModeAction = "x";
+                }
+                else if (TypedChord("t"))
+                {
+                    _structureModeAction = "t";
+                }
+                else if (TypedChord("u"))
+                {
+                    switch (_structureModeAction)
+                    {
+                    case "m":
+                        SelectPreviousSibling();
+                        break;
+                    }
+                }
+                else if (TypedChord("d"))
+                {
+                    switch (_structureModeAction)
+                    {
+                    case "m":
+                        SelectNextSibling();
+                        break;
+                    }
+                }
+            }
+        }
+
+        private bool InStructureMode()
+        {
+            return !_editor.Editable;
+        }
+
+        private void EnterStructureMode()
+        {
+            _editor.Editable = false;
+        }
+
+        private void ExitStructureMode()
+        {
+            _editor.Editable = true;
         }
 
 		#endregion

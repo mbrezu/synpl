@@ -22,7 +22,14 @@ namespace Synpl.EditorAbstraction
 {	
 	public interface IAbstractEditor
 	{
-		#region Navigation and Coordinate Conversion
+        #region Navigation
+        int MoveForwardLines(int howMany);
+        int MoveForwardChars(int howMany);
+        bool MoveToStartOfLine();
+        bool MoveToEndOfLine();
+        #endregion
+        
+		#region Coordinate Conversion
 		int CursorOffset { get; set; }
 		void GetSelection(out int start, out int end);
 		void SetSelection(int start, int end);		

@@ -56,6 +56,101 @@ namespace Synpl.ShellGtk
 
 		#region Implementation of IAbstractEditor
 
+        public int MoveForwardLines(int howMany)
+        {
+            int result = 0;
+            bool forward = howMany > 0;
+            int lastLine, lastColumn;
+            OffsetToLineColumn(Length, out lastLine, out lastColumn);
+            while (howMany != 0)
+            {
+                int currentLine, currentColumn;
+                OffsetToLineColumn(CursorOffset, out currentLine, out currentColumn);
+                if (forward && currentLine == lastLine)
+                {
+                    break;
+                }
+                else if (!forward && currentLine == 0)
+                {
+                    break;
+                }
+                int newLine;
+                if (forward)
+                {
+                    newLine = currentLine + 1;
+                }
+                else
+                {
+                    newLine = currentLine - 1;
+                }
+                int newColumn = currentColumn;
+                int lastColumnOnNewLine = LastColumnOnLine(newLine);
+                if (newColumn > lastColumnOnNewLine)
+                {
+                    newColumn = lastColumnOnNewLine;
+                }
+                CursorOffset = LineColumnToOffset(newLine, newColumn);
+                if (forward) 
+                {
+                    howMany --;
+                }
+                else
+                {
+                    howMany ++;
+                }
+                result ++;                    
+            }
+            return result;
+        }
+
+        public int MoveForwardChars(int howMany)
+        {
+            int result = 0;
+            bool forward = howMany > 0;
+            while (howMany != 0)
+            {
+                if (forward && CursorOffset >= Length - 1)
+                {
+                    break;
+                }
+                else if (!forward && CursorOffset == 0)
+                {
+                    break;
+                }
+                if (forward) 
+                {
+                    CursorOffset ++;
+                    howMany --;
+                }
+                else
+                {
+                    CursorOffset --;
+                    howMany ++;
+                }
+                result ++;
+            }
+            return result;
+        }
+
+        public bool MoveToStartOfLine()
+        {
+            int line, column;
+            OffsetToLineColumn(CursorOffset, out line, out column);
+            bool result = CursorOffset != OffsetStartLine(line);
+            CursorOffset = OffsetStartLine(line);
+            return result;
+        }
+        
+        public bool MoveToEndOfLine()
+        {
+            int line, column;
+            OffsetToLineColumn(CursorOffset, out line, out column);
+            column = LastColumnOnLine(line);
+            bool result = CursorOffset != LineColumnToOffset(line, column);
+            CursorOffset = LineColumnToOffset(line, column);
+            return result;
+        }
+        
         public bool Editable
         {
             get
@@ -192,6 +287,23 @@ namespace Synpl.ShellGtk
 		#endregion
 
 		#region Private Helper Methods
+        private int LastColumnOnLine(int line)
+        {
+            int offset = OffsetStartLine(line + 1) - 1;
+            if (offset > Length - 1)
+            {
+                offset = Length - 1;
+            }
+            int dummyLine, column;
+            OffsetToLineColumn(offset, out dummyLine, out column);
+            return column;
+        }
+
+        private int OffsetStartLine(int line)
+        {
+            return LineColumnToOffset(line, 0);
+        }
+        
 		private void ConfigureTags()
 		{
 			// These values should be read from a configuration file.
