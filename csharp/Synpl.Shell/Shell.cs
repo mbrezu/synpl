@@ -120,8 +120,7 @@ namespace Synpl.Shell
                     _selectedTreeStack.Add(_selectedTreeStack.Last.Parent);
                 }
             }
-            _editor.SetSelection(_selectedTreeStack.Last.StartPosition, 
-                                 _selectedTreeStack.Last.EndPosition);
+            SelectInEditor();
         }
 
         public void LastSelection()
@@ -130,8 +129,7 @@ namespace Synpl.Shell
             if (_selectedTreeStack.Count >= 2)
             {
                 _selectedTreeStack.RemoveAt(_selectedTreeStack.Count - 1);
-                _editor.SetSelection(_selectedTreeStack.Last.StartPosition, 
-                                     _selectedTreeStack.Last.EndPosition);
+                SelectInEditor();
             }            
         }
 
@@ -143,8 +141,7 @@ namespace Synpl.Shell
                 if (prev != null)
                 {
                     _selectedTreeStack.Add(prev);
-                    _editor.SetSelection(_selectedTreeStack.Last.StartPosition,
-                                         _selectedTreeStack.Last.EndPosition);
+                    SelectInEditor();
                 }
             }
         }
@@ -157,8 +154,20 @@ namespace Synpl.Shell
                 if (next != null)
                 {
                     _selectedTreeStack.Add(next);
-                    _editor.SetSelection(_selectedTreeStack.Last.StartPosition,
-                                         _selectedTreeStack.Last.EndPosition);
+                    SelectInEditor();
+                }
+            }
+        }
+
+        public void SelectFirstChild()
+        {
+            if (_selectedTreeStack.Count > 0)
+            {
+                ParseTree top = _selectedTreeStack.Last;
+                if (top.SubTrees.Count > 0)
+                {
+                    _selectedTreeStack.Add(top.SubTrees[0]);
+                    SelectInEditor();
                 }
             }
         }
@@ -229,6 +238,26 @@ namespace Synpl.Shell
             _editor.InsertText(0, newText, false);
             _selectedTreeStack.Clear();
         }
+
+        public void PrettyPrint()
+        {
+            if (_selectedTreeStack.Count == 0)
+            {
+                return;
+            }
+            CowList<int> path = _selectedTreeStack.Last.GetPath();
+            _selectedTreeStack.Last.PrettyPrint(40, _editor);
+            _selectedTreeStack.Clear();
+            if (_parseTree != null)
+            {
+                ParseTree previouslySelected = _parseTree.GetNodeAtPath(path);
+                if (previouslySelected != null)
+                {
+                    _selectedTreeStack.Add(previouslySelected);
+                    SelectInEditor();
+                }
+            }
+        }
         #endregion
 
         #region Private Helper Methods
@@ -274,7 +303,7 @@ namespace Synpl.Shell
                 || _parseTree.EndPosition <= e.Start
                 || _parseTree.StartPosition >= e.Start)
             {
-//                Console.WriteLine("Complete Reparse.");
+                Console.WriteLine("Complete Reparse.");
                 _text.SetText("");
                 string text = _editor.GetText(0, _editor.Length);
                 int pos = 0;
@@ -415,9 +444,14 @@ namespace Synpl.Shell
                 _selectedTreeStack.Clear();
                 _parseTree = newRoot;
                 _selectedTreeStack.Add(_parseTree.GetNodeAtPath(path));
-                _editor.SetSelection(_selectedTreeStack.Last.StartPosition,
-                                     _selectedTreeStack.Last.EndPosition);                
+                SelectInEditor();
             }
+        }
+
+        private void SelectInEditor()
+        {
+            _editor.SetSelection(_selectedTreeStack.Last.StartPosition,
+                                 _selectedTreeStack.Last.EndPosition);                
         }
 
         #endregion
@@ -526,6 +560,14 @@ namespace Synpl.Shell
                         MoveDown();
                         break;
                     }
+                }
+                else if (TypedChord("c"))
+                {
+                    SelectFirstChild();
+                }
+                else if (TypedChord("y"))
+                {
+                    PrettyPrint();
                 }
             }
         }

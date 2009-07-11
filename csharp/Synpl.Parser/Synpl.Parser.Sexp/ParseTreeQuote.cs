@@ -49,5 +49,12 @@ namespace Synpl.Parser.Sexp
             return result;
         }
         #endregion
+
+        #region Pretty Printing
+        public override string ToStringAsPrettyPrint(int indentLevel, int maxColumn)
+        {
+            return String.Format("'{0}", SubTrees[0].ToStringAsPrettyPrint(indentLevel + 1, maxColumn));
+        }
+        #endregion
     }
 }

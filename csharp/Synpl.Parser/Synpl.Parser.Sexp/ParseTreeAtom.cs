@@ -53,5 +53,12 @@ namespace Synpl.Parser.Sexp
             _content = content;
         }
         #endregion
+
+        #region Pretty Printing
+        public override string ToStringAsPrettyPrint(int indentLevel, int maxColumn)
+        {
+            return _content;
+        }
+        #endregion
     }
 }

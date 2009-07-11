@@ -450,13 +450,37 @@ namespace Synpl.Core
         }
 
         // TODO: Add unit test.
-        public string PrettyPrint(int indentLevel, int maxColumn)
+        // TODO: PrettyPrint and Indent violate the Text Flow laws. The changes should be
+        // effected on the text with changes, not on the editor. This needs to be fixed
+        // if broken code is to be pretty printed correctly.
+        //
+        // The Indent violation is not that bad for languages that are not white space
+        // sensitive.
+        //
+        // PrettyPrint should at least refuse to work on text with errors. It should
+        // also warn about comments in the code (which will be discarded).
+        public void PrettyPrint(int maxColumn, IAbstractEditor editor)
+        {
+            if (ToStringAsCode(true) != ToStringAsCode(false))
+            {
+                return;
+            }
+            int line, column;
+            editor.OffsetToLineColumn(StartPosition, out line, out column);
+            string prettyPrint = ToStringAsPrettyPrint(column, maxColumn);
+            editor.DeleteText(StartPosition, EndPosition - StartPosition, false);
+            Console.WriteLine("pp: {0}", prettyPrint);
+            editor.InsertText(StartPosition, prettyPrint, false);
+        }
+
+        // TODO: Add unit test.
+        public virtual string ToStringAsPrettyPrint(int indentLevel, int maxColumn)
         {
             return ToStringAsCode(false);
         }
 
         // TODO: Add unit test.
-        public bool Indent(int position, IAbstractEditor editor)
+        public virtual bool Indent(int position, IAbstractEditor editor)
         {
             int currentLine, currentColumn;
             editor.OffsetToLineColumn(position, out currentLine, out currentColumn);
