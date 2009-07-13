@@ -332,7 +332,7 @@ namespace Synpl.Core
             return _parent.GetRoot();
         }
 
-        public ParseTree CharInsertedAt(char ch, int position)
+        public ParseTree GetNodeOrThis(int position)
         {
             CowList<ParseTree> path = GetPathForPosition(position);
             ParseTree nodeAffected = null;
@@ -344,24 +344,45 @@ namespace Synpl.Core
             {
                 nodeAffected = path[path.Count - 1];
             }
+            return nodeAffected;
+        }
+
+        // This function is to be used when the parse tree inserts a character.
+        // It doesn't trigger a reparse.
+        public void InsertCharAt(char ch, int position)
+        {
+            ParseTree nodeAffected = GetNodeOrThis(position);
+            nodeAffected._text.InsertChar(ch, position, true);
+            nodeAffected._endPosition ++;
+            nodeAffected.OffsetSuccessorsPositionBy(1);
+        }
+
+        // This function is to be used when the parse tree is notified of a character
+        // insertion in the editor.
+        public ParseTree CharInsertedAt(char ch, int position)
+        {
+            ParseTree nodeAffected = GetNodeOrThis(position);
             nodeAffected._text.InsertChar(ch, position);
             nodeAffected._endPosition ++;
             nodeAffected.OffsetSuccessorsPositionBy(1);
             return nodeAffected.ReparseAndValidateRecursively();
         }
 
+        // This function is to be used when the parse tree deletes a character.
+        // It doesn't trigger a reparse.
+        public void DeleteCharAt(int position)
+        {
+            ParseTree nodeAffected = GetNodeOrThis(position);
+            nodeAffected._text.DeleteChar(position, true);
+            nodeAffected._endPosition--;
+            nodeAffected.OffsetSuccessorsPositionBy(-1);
+        }
+
+        // This function is to be used when the parse tree is notified of a character
+        // deletion in the editor.
         public ParseTree CharDeletedAt(int position)
         {
-            CowList<ParseTree> path = GetPathForPosition(position);
-            ParseTree nodeAffected = null;
-            if (path.Count == 0)
-            {
-                nodeAffected = this;
-            }
-            else
-            {
-                nodeAffected = path[path.Count - 1];
-            }
+            ParseTree nodeAffected = GetNodeOrThis(position);
             nodeAffected._text.DeleteChar(position);
             nodeAffected._endPosition--;
             nodeAffected.OffsetSuccessorsPositionBy(-1);
@@ -450,27 +471,28 @@ namespace Synpl.Core
         }
 
         // TODO: Add unit test.
-        // TODO: PrettyPrint and Indent violate the Text Flow laws. The changes should be
-        // effected on the text with changes, not on the editor. This needs to be fixed
-        // if broken code is to be pretty printed correctly.
         //
-        // The Indent violation is not that bad for languages that are not white space
-        // sensitive.
+        // The unit tests for pretty printing and indenting should check the behaviour in
+        // the presence of unparsed text changes.
         //
-        // PrettyPrint should at least refuse to work on text with errors. It should
-        // also warn about comments in the code (which will be discarded).
-        public void PrettyPrint(int maxColumn, IAbstractEditor editor)
+        // TODO: Pretty printing should preserve the position of the cursor (relative to the
+        // inner most node.
+        public ParseTree PrettyPrint(int maxColumn, IAbstractEditor editor)
         {
-            if (ToStringAsCode(true) != ToStringAsCode(false))
-            {
-                return;
-            }
             int line, column;
             editor.OffsetToLineColumn(StartPosition, out line, out column);
             string prettyPrint = ToStringAsPrettyPrint(column, maxColumn);
-            editor.DeleteText(StartPosition, EndPosition - StartPosition, false);
+            int length = EndPosition - StartPosition;
+            for (int i = 0; i < length; i++)
+            {
+                DeleteCharAt(StartPosition);
+            }
             Console.WriteLine("pp: {0}", prettyPrint);
-            editor.InsertText(StartPosition, prettyPrint, false);
+            for (int i = 0; i < prettyPrint.Length; i++)
+            {
+                InsertCharAt(prettyPrint[i], StartPosition + i);
+            }
+            return ReparseAndValidateRecursively();
         }
 
         // TODO: Add unit test.
@@ -480,13 +502,13 @@ namespace Synpl.Core
         }
 
         // TODO: Add unit test.
-        public virtual bool Indent(int position, IAbstractEditor editor)
+        public virtual ParseTree Indent(int position, IAbstractEditor editor)
         {
             int currentLine, currentColumn;
             editor.OffsetToLineColumn(position, out currentLine, out currentColumn);
             if (currentLine == 0)
             {
-                return false;
+                return GetRoot();
             }
             Console.WriteLine("!!! Indenting:");
             Console.WriteLine("current: {0} {1} {2}", position, currentLine, currentColumn);
@@ -495,7 +517,7 @@ namespace Synpl.Core
             ParseTree lineStarter = GetFirstNodeAfter(lineStartOffset);
             if (lineStarter == null)
             {
-                return false;
+                return GetRoot();
             }
             ParseTree lastSibling = lineStarter.GetLastSiblingBefore(lineStartOffset);
             int desiredIndentColumn;
@@ -516,7 +538,7 @@ namespace Synpl.Core
             }
             else
             {
-                return false;
+                return GetRoot();
             }
             Console.WriteLine("desired column: {0}", desiredIndentColumn);
             int lineStarterLine, lineStarterColumn;
@@ -530,18 +552,22 @@ namespace Synpl.Core
             if (lineStarterColumn < desiredIndentColumn)                
             {
                 Console.WriteLine("adding {0}", lineStartOffset);
-                editor.InsertText(lineStartOffset, 
-                                  new String(' ', desiredIndentColumn - lineStarterColumn), 
-                                  false);
-                return true;
+                for (int i = 0; i < desiredIndentColumn - lineStarterColumn; i++)
+                {
+                    InsertCharAt(' ', lineStartOffset);
+                }
+                return ReparseAndValidateRecursively();
             }
             else if (lineStarterColumn > desiredIndentColumn)
             {
                 Console.WriteLine("deleting");
-                editor.DeleteText(lineStartOffset, lineStarterColumn - desiredIndentColumn, false);
-                return true;
+                for (int i = 0; i <  lineStarterColumn - desiredIndentColumn; i++)
+                {
+                    DeleteCharAt(lineStartOffset);
+                }
+                return ReparseAndValidateRecursively();
             }
-            return false;
+            return GetRoot();
         }
         #endregion
 

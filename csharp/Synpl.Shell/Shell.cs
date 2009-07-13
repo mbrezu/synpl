@@ -222,11 +222,15 @@ namespace Synpl.Shell
             {
                 return;
             }
-            if (_parseTree.Indent(_editor.CursorOffset, _editor))
-            {
+            ParseTree newParseTree = _parseTree.Indent(_editor.CursorOffset, _editor);
+            // If newParseTree is _parseTree, then the indend didn't do anything
+            // and we don't need to cancel the selection and update the stored parse tree.
+            if (newParseTree != _parseTree)
+            {                
                 // We need to clear the selected tree stack as the trees on the stack are no longer
                 // valid.
                 // TODO: store trees on the stack as paths to nodes and do not invalidate on indent?
+                _parseTree = newParseTree;
                 _selectedTreeStack.Clear();
             }
         }
@@ -239,24 +243,26 @@ namespace Synpl.Shell
             _selectedTreeStack.Clear();
         }
 
-        public void PrettyPrint()
+        public ParseTree PrettyPrint()
         {
             if (_selectedTreeStack.Count == 0)
             {
-                return;
+                return _parseTree;
             }
             CowList<int> path = _selectedTreeStack.Last.GetPath();
-            _selectedTreeStack.Last.PrettyPrint(40, _editor);
+            Console.WriteLine("path of pped node: {0}", path.ToString());
+            _parseTree = _selectedTreeStack.Last.PrettyPrint(40, _editor);
             _selectedTreeStack.Clear();
-            if (_parseTree != null)
+            ParseTree previouslySelected = _parseTree.GetNodeAtPath(path);
+            if (previouslySelected != null)
             {
-                ParseTree previouslySelected = _parseTree.GetNodeAtPath(path);
-                if (previouslySelected != null)
-                {
-                    _selectedTreeStack.Add(previouslySelected);
-                    SelectInEditor();
-                }
+                _selectedTreeStack.Add(previouslySelected);
+                SelectInEditor();
             }
+            Console.WriteLine(">>> Code tree is:{0}{1}", 
+                              Environment.NewLine,
+                              _parseTree.ToStringAsTree());            
+            return _parseTree;
         }
         #endregion
 
@@ -290,9 +296,9 @@ namespace Synpl.Shell
             _text.ValidateSlice(_parseTree.StartPosition, _parseTree.EndPosition);
 //            Console.WriteLine(">>> New parse tree:");
 //            Console.WriteLine(">>> TWC is: {0}", _text.TestRender());
-//            Console.WriteLine(">>> Code tree is:{0}{1}", 
-//                              Environment.NewLine,
-//                              _parseTree.ToStringAsTree());            
+            Console.WriteLine(">>> Code tree is:{0}{1}", 
+                              Environment.NewLine,
+                              _parseTree.ToStringAsTree());            
 //            Console.WriteLine(">>> Old code is '{0}'.", _parseTree.ToStringAsCode(true));
 //            Console.WriteLine(">>> New code is '{0}'.", _parseTree.ToStringAsCode(false));
         }        
@@ -567,7 +573,7 @@ namespace Synpl.Shell
                 }
                 else if (TypedChord("y"))
                 {
-                    PrettyPrint();
+                    _parseTree = PrettyPrint();
                 }
             }
         }
