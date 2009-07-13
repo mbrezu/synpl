@@ -44,23 +44,33 @@ namespace Synpl.Parser.Sexp
         #region Pretty Printing
         public override string ToStringAsPrettyPrint(int indentLevel, int maxColumn)
         {
-            List<string> oneLinePrettyPrints = new List<string>();
-            foreach (ParseTree tree in SubTrees)
+            if (SubTrees.Count == 0)
             {
-                oneLinePrettyPrints.Add(tree.ToStringAsPrettyPrint(indentLevel, 100000));
+                return "()";
             }
-            string oneLine = String.Format("({0})", String.Join(" ", oneLinePrettyPrints.ToArray()));
-            if (indentLevel + oneLine.Length <= maxColumn)
+            else
             {
-                return oneLine;
+                if (EndPosition - StartPosition <= maxColumn - indentLevel + 1)
+                {
+                    List<string> oneLinePrettyPrints = new List<string>();
+                    foreach (ParseTree tree in SubTrees)
+                    {
+                        oneLinePrettyPrints.Add(tree.ToStringAsPrettyPrint(indentLevel, 100000));
+                    }
+                    string oneLine = String.Format("({0})", String.Join(" ", oneLinePrettyPrints.ToArray()));
+                    if (indentLevel + oneLine.Length <= maxColumn)
+                    {
+                        return oneLine;
+                    }
+                }
+                List<string> prettyPrints = new List<string>();
+                foreach (ParseTree tree in SubTrees)
+                {
+                    prettyPrints.Add(tree.ToStringAsPrettyPrint(indentLevel + 1, maxColumn));                
+                }
+                string separator = "\n" + new String(' ', indentLevel + 1);
+                return String.Format("({0})", String.Join(separator, prettyPrints.ToArray()));
             }
-            List<string> prettyPrints = new List<string>();
-            foreach (ParseTree tree in SubTrees)
-            {
-                prettyPrints.Add(tree.ToStringAsPrettyPrint(indentLevel + 1, maxColumn));                
-            }
-            string separator = "\n" + new String(' ', indentLevel + 1);
-            return String.Format("({0})", String.Join(separator, prettyPrints.ToArray()));
         }
         #endregion
 
