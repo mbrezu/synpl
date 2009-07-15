@@ -48,6 +48,7 @@
     <Compile Include="TestSexpParser.cs" />
     <Compile Include="TestCowList.cs" />
     <Compile Include="TestEditorAbstraction.cs" />
+    <Compile Include="MockEditor.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Synpl.Core\Synpl.Core.csproj">
