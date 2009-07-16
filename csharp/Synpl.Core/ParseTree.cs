@@ -354,6 +354,7 @@ namespace Synpl.Core
             ParseTree nodeAffected = GetNodeOrThis(position);
             nodeAffected._text.InsertChar(ch, position, true);
             nodeAffected._endPosition ++;
+            nodeAffected.OffsetSubtreesPositionBy(position, 1);
             nodeAffected.OffsetSuccessorsPositionBy(1);
         }
 
@@ -364,6 +365,7 @@ namespace Synpl.Core
             ParseTree nodeAffected = GetNodeOrThis(position);
             nodeAffected._text.InsertChar(ch, position);
             nodeAffected._endPosition ++;
+            nodeAffected.OffsetSubtreesPositionBy(position, 1);
             nodeAffected.OffsetSuccessorsPositionBy(1);
             return nodeAffected.ReparseAndValidateRecursively();
         }
@@ -375,6 +377,7 @@ namespace Synpl.Core
             ParseTree nodeAffected = GetNodeOrThis(position);
             nodeAffected._text.DeleteChar(position, true);
             nodeAffected._endPosition--;
+            nodeAffected.OffsetSubtreesPositionBy(position, -1);
             nodeAffected.OffsetSuccessorsPositionBy(-1);
         }
 
@@ -385,6 +388,7 @@ namespace Synpl.Core
             ParseTree nodeAffected = GetNodeOrThis(position);
             nodeAffected._text.DeleteChar(position);
             nodeAffected._endPosition--;
+            nodeAffected.OffsetSubtreesPositionBy(position, -1);
             nodeAffected.OffsetSuccessorsPositionBy(-1);
             return nodeAffected.ReparseAndValidateRecursively();
         }
@@ -470,6 +474,11 @@ namespace Synpl.Core
             return null;
         }
 
+        public bool HasUnparsedChanges()
+        {
+            return ToStringAsCode(true) != ToStringAsCode(false);
+        }
+
         // TODO: Add unit test.
         //
         // The unit tests for pretty printing and indenting should check the behaviour in
@@ -483,6 +492,10 @@ namespace Synpl.Core
         // inner most node.
         public ParseTree PrettyPrint(int maxColumn, IAbstractEditor editor)
         {
+            if (HasUnparsedChanges())
+            {
+                return GetRoot();
+            }
             int line, column;
             editor.OffsetToLineColumn(StartPosition, out line, out column);
             string prettyPrint = ToStringAsPrettyPrint(column, maxColumn);
@@ -517,6 +530,8 @@ namespace Synpl.Core
             Console.WriteLine("!!! Indenting:");
             Console.WriteLine("current: {0} {1} {2}", position, currentLine, currentColumn);
             int lineStartOffset = editor.LineColumnToOffset(currentLine, 0);
+            int testLine, testColumn;
+            editor.OffsetToLineColumn(lineStartOffset, out testLine, out testColumn);
             Console.WriteLine("line start:{0}", lineStartOffset);
             ParseTree lineStarter = GetFirstNodeAfter(lineStartOffset);
             if (lineStarter == null)
@@ -652,6 +667,17 @@ namespace Synpl.Core
             foreach (ParseTree node in _subTrees)
             {
                 node.OffsetPositionBy(offset);
+            }
+        }
+
+        private void OffsetSubtreesPositionBy(int position, int offset)
+        {
+            foreach (ParseTree subtree in _subTrees)
+            {
+                if (subtree.StartPosition >= position)
+                {
+                    subtree.OffsetPositionBy(offset);
+                }
             }
         }
 
