@@ -27,117 +27,88 @@ namespace Synpl.Test.Core
         #region Constructor
         public MockEditor()
         {
+            _text = String.Empty;
+            _currentPosition = 0;
+            _selectionStart = 0;
+            _selectionEnd = 0;
         }
         #endregion
 
-        #region Public Methods
+        #region Public Methods (Simulation of User Interaction)
         public void SimulateKeyStroke(Synpl.EditorAbstraction.Key keystroke)
         {
             OnKeyStroke(new KeyStrokeEventArgs(keystroke));
         }
+
+        public void SimulateStartSelecting()
+        {
+            _selectionStart = _currentPosition;
+            _selectionEnd = _currentPosition;
+        }
+
+        public void SimulateMoveUp(bool keepSelection)
+        {
+            this.MoveForwardLines(-1);
+            HandleSelection(keepSelection);
+        }
+
+        public void SimulateMoveDown(bool keepSelection)
+        {
+            this.MoveForwardLines(1);
+            HandleSelection(keepSelection);
+        }
+
+        public void SimulateMoveLeft(bool keepSelection)
+        {
+            this.MoveForwardChars(-1);
+            HandleSelection(keepSelection);
+        }
+
+        public void SimulateMoveRight(bool keepSelection)
+        {
+            this.MoveForwardChars(1);
+            HandleSelection(keepSelection);
+        }
+
+        public void SimulateInsertText(string text)
+        {
+            InsertText(_currentPosition, text, false);
+            _currentPosition += text.Length;
+            HandleSelection(false);
+        }
+
+        public void SimulateDelKeyStroke()
+        {
+            if (_selectionEnd != _selectionStart)
+            {
+                int startDelete = Math.Min(_selectionEnd, _selectionStart);
+                int numberOfChars = Math.Abs(_selectionEnd - _selectionStart);
+                DeleteText(startDelete, numberOfChars, false);
+                _currentPosition = startDelete;
+                HandleSelection(false);
+            }            
+            else
+            {
+                if (_currentPosition < _text.Length)
+                {
+                    DeleteText(_currentPosition, 1, false);
+                    HandleSelection(false);
+                }
+            }
+        }
+
+        public void SimulateBackspaceKeyStroke()
+        {
+            if (_currentPosition > 0)
+            {
+                _currentPosition --;
+                DeleteText(_currentPosition, 1, false);
+                HandleSelection(false);
+            }
+        }
         #endregion
 
         #region IAbstractEditor Implementation
-        
-        #region Navigation
-        // TODO: MoveForwardLines, MoveForwardChars, MoveToStartOfLine,
-        // MoveToEndOfLine, LastColumnOnLine, OffsetStartLine should become        
-        // extension methods for IAbstractEditor (a "mixin")
-        public int MoveForwardLines(int howMany)
-        {
-            int result = 0;
-            bool forward = howMany > 0;
-            int lastLine, lastColumn;
-            OffsetToLineColumn(Length, out lastLine, out lastColumn);
-            while (howMany != 0)
-            {
-                int currentLine, currentColumn;
-                OffsetToLineColumn(CursorOffset, out currentLine, out currentColumn);
-                if (forward && currentLine == lastLine)
-                {
-                    break;
-                }
-                else if (!forward && currentLine == 0)
-                {
-                    break;
-                }
-                int newLine;
-                if (forward)
-                {
-                    newLine = currentLine + 1;
-                }
-                else
-                {
-                    newLine = currentLine - 1;
-                }
-                int newColumn = currentColumn;
-                int lastColumnOnNewLine = LastColumnOnLine(newLine);
-                if (newColumn > lastColumnOnNewLine)
-                {
-                    newColumn = lastColumnOnNewLine;
-                }
-                CursorOffset = LineColumnToOffset(newLine, newColumn);
-                if (forward) 
-                {
-                    howMany --;
-                }
-                else
-                {
-                    howMany ++;
-                }
-                result ++;                    
-            }
-            return result;
-        }
-
-        public int MoveForwardChars(int howMany)
-        {
-            int result = 0;
-            bool forward = howMany > 0;
-            while (howMany != 0)
-            {
-                if (forward && CursorOffset >= Length - 1)
-                {
-                    break;
-                }
-                else if (!forward && CursorOffset == 0)
-                {
-                    break;
-                }
-                if (forward) 
-                {
-                    CursorOffset ++;
-                    howMany --;
-                }
-                else
-                {
-                    CursorOffset --;
-                    howMany ++;
-                }
-                result ++;
-            }
-            return result;
-        }
-
-        public bool MoveToStartOfLine()
-        {
-            int line, column;
-            OffsetToLineColumn(CursorOffset, out line, out column);
-            bool result = CursorOffset != OffsetStartLine(line);
-            CursorOffset = OffsetStartLine(line);
-            return result;
-        }
-        
-        public bool MoveToEndOfLine()
-        {
-            int line, column;
-            OffsetToLineColumn(CursorOffset, out line, out column);
-            column = LastColumnOnLine(line);
-            bool result = CursorOffset != LineColumnToOffset(line, column);
-            CursorOffset = LineColumnToOffset(line, column);
-            return result;
-        }
-        #endregion
         
         #region Coordinate Conversion
         public int CursorOffset 
@@ -296,22 +267,18 @@ namespace Synpl.Test.Core
             }
         }
 
-        private int LastColumnOnLine(int line)
+        private void HandleSelection(bool keepSelection)
         {
-            int offset = OffsetStartLine(line + 1) - 1;
-            if (offset > Length - 1)
+            if (keepSelection)
             {
-                offset = Length - 1;
+                _selectionEnd = _currentPosition;
             }
-            int dummyLine, column;
-            OffsetToLineColumn(offset, out dummyLine, out column);
-            return column;
+            else
+            {
+                SimulateStartSelecting();
+            }
         }
 
-        private int OffsetStartLine(int line)
-        {
-            return LineColumnToOffset(line, 0);
-        }
         #endregion
     }
 }

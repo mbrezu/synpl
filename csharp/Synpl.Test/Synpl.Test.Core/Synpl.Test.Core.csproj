@@ -41,6 +41,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Libraries\nunit-console.exe</HintPath>
     </Reference>
+    <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestTextWithChanges.cs" />
@@ -49,6 +50,7 @@
     <Compile Include="TestCowList.cs" />
     <Compile Include="TestEditorAbstraction.cs" />
     <Compile Include="MockEditor.cs" />
+    <Compile Include="TestMockEditor.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Synpl.Core\Synpl.Core.csproj">
@@ -72,4 +74,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties InternalTargetFrameworkVersion="3.5" />
+    </MonoDevelop>
+  </ProjectExtensions>
 </Project>
