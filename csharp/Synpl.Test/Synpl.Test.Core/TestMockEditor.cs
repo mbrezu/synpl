@@ -28,6 +28,7 @@ namespace Synpl.Test.Core
     public class TestMockEditor
     {
 
+        #region MockEditor Tests (meta-testing? :-p )
         [Test]
         public void TestSimulateInsertText()
         {
@@ -41,10 +42,7 @@ namespace Synpl.Test.Core
         [Test]
         public void TestSimulateDeleteOneChar()
         {
-            MockEditor med = new MockEditor();
-            string testString = "Ana are mere.";
-            med.SimulateInsertText(testString);
-            med.CursorOffset = 0;
+            MockEditor med = SetupMockEditor("Ana are mere.");
             med.SimulateMoveRight(false);
             med.SimulateMoveRight(false);
             med.SimulateDelKeyStroke();
@@ -55,10 +53,7 @@ namespace Synpl.Test.Core
         [Test]
         public void TestSimulateDeleteSelection()
         {
-            MockEditor med = new MockEditor();
-            string testString = "Ana are mere.";
-            med.SimulateInsertText(testString);
-            med.CursorOffset = 0;
+            MockEditor med = SetupMockEditor("Ana are mere.");
             med.SimulateStartSelecting();
             med.SimulateMoveRight(true);
             med.SimulateMoveRight(true);
@@ -66,5 +61,147 @@ namespace Synpl.Test.Core
             string expectedContent = "a are mere.";
             Assert.AreEqual(expectedContent, med.GetText(0, med.Length));
         }
+
+        [Test]
+        public void TestSimulateMoveUpDown()
+        {
+            MockEditor med = SetupMockEditor("Line 1.\nLine number two.\nThird line.");
+            RepeatIt(3, delegate() { med.SimulateMoveRight(false); });
+            RepeatIt(1, delegate() { med.SimulateMoveDown(false); });
+            int line, column;
+            med.OffsetToLineColumn(med.CursorOffset, out line, out column);
+            Assert.AreEqual(1, line);
+            Assert.AreEqual(3, column);
+            RepeatIt(10, delegate() { med.SimulateMoveRight(false); });
+            RepeatIt(1, delegate() { med.SimulateMoveDown(false); });
+            med.OffsetToLineColumn(med.CursorOffset, out line, out column);
+            Assert.AreEqual(2, line);
+            Assert.AreEqual(10, column);            
+        }
+
+        [Test]
+        public void TestSimulateBackSpace()
+        {
+            MockEditor med = SetupMockEditor("Line 1.\nLine number two.\nThird line.");
+            med.MoveForwardChars(8);
+            med.SimulateBackspaceKeyStroke();
+            Assert.AreEqual("Line 1.Line number two.\nThird line.", 
+                            med.GetText(0, med.Length));
+        }
+
+        [Test]
+        public void TestGetSelection()
+        {
+            MockEditor med = SetupMockEditor("Line 1.\nLine number two.\nThird line.");
+            RepeatIt(9, delegate() { med.SimulateMoveRight(false); });
+            RepeatIt(6, delegate() { med.SimulateMoveRight(true); });
+            int selectionStart, selectionEnd;
+            med.GetSelection(out selectionStart, out selectionEnd);
+            Assert.AreEqual("ine nu", 
+                            med.GetText(selectionStart, 
+                                        selectionEnd - selectionStart));
+        }
+
+        [Test]
+        public void TestSetSelection()
+        {
+            MockEditor med = SetupMockEditor("Line 1.\nLine number two.\nThird line.");
+            med.SetSelection(0, 8);
+            int selectionStart, selectionEnd;
+            med.GetSelection(out selectionStart, out selectionEnd);
+            Assert.AreEqual("Line 1.\n", 
+                            med.GetText(selectionStart, 
+                                        selectionEnd - selectionStart));
+        }
+
+        [Test]
+        public void TestLength()
+        {
+            string testString = "Line 1.\nLine number two.\nThird line.";
+            MockEditor med = SetupMockEditor(testString);
+            Assert.AreEqual(testString.Length, med.Length);
+        }
+
+        [Test]
+        public void TestLineColumnToOffset()
+        {
+            MockEditor med = SetupMockEditor("Line 1.\nLine number two.\nThird line.");
+            med.CursorOffset = med.LineColumnToOffset(1, 0);
+            Assert.AreEqual(8, med.CursorOffset);
+            med.CursorOffset = med.LineColumnToOffset(1, 7);
+            Assert.AreEqual(15, med.CursorOffset);
+            med.CursorOffset = med.LineColumnToOffset(2, 3);
+            Assert.AreEqual(28, med.CursorOffset);
+            med.CursorOffset = med.LineColumnToOffset(1, 16);
+            Assert.AreEqual(24, med.CursorOffset);
+            med.CursorOffset = med.LineColumnToOffset(2, 0);
+            Assert.AreEqual(25, med.CursorOffset);
+       }
+
+        [Test]
+        public void TestOffsetToLineColumn()
+        {
+            MockEditor med = SetupMockEditor("Line 1.\nLine number two.\nThird line.");
+            int testLine, testColumn;
+            med.CursorOffset = 8;
+            med.OffsetToLineColumn(med.CursorOffset, out testLine, out testColumn);
+            Assert.AreEqual(1, testLine);
+            Assert.AreEqual(0, testColumn);
+            med.CursorOffset = 15;
+            med.OffsetToLineColumn(med.CursorOffset, out testLine, out testColumn);
+            Assert.AreEqual(1, testLine);
+            Assert.AreEqual(7, testColumn);
+            med.CursorOffset = 28;
+            med.OffsetToLineColumn(med.CursorOffset, out testLine, out testColumn);
+            Assert.AreEqual(2, testLine);
+            Assert.AreEqual(3, testColumn);
+            med.CursorOffset = 25;
+            med.OffsetToLineColumn(med.CursorOffset, out testLine, out testColumn);
+            Assert.AreEqual(2, testLine);
+            Assert.AreEqual(0, testColumn);
+            med.CursorOffset = 24;
+            med.OffsetToLineColumn(med.CursorOffset, out testLine, out testColumn);
+            Assert.AreEqual(1, testLine);
+            Assert.AreEqual(16, testColumn);
+        }
+        
+        // TODO: Complete these unit tests.
+//        [Test]
+//        public void TestInsertText()
+//        {
+//            Assert.Fail();
+//        }
+//
+//        [Test]
+//        public void TestDeleteText()
+//        {
+//            Assert.Fail();
+//        }
+//
+//        [Test]
+//        public void TestGetText()
+//        {
+//            Assert.Fail();
+//        }
+        #endregion
+
+        #region Private Helper Methods
+        private void RepeatIt(int times, Action action)
+        {
+            for (int i = 0; i < times; i++)
+            {
+                action();
+            }
+        }
+
+        private MockEditor SetupMockEditor(string text)
+        {
+            MockEditor result = new MockEditor();
+            result.SimulateInsertText(text);
+            result.CursorOffset = 0;
+            return result;
+        }
+        #endregion
+
     }
 }

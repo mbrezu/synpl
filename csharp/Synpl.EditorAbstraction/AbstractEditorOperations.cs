@@ -20,6 +20,7 @@ using System;
 
 namespace Synpl.EditorAbstraction
 {
+    // TODO: These need to be tested in TestMockEditor.cs.
     public static class AbstractEditorOperations
     {        
         public static int MoveForwardLines(this IAbstractEditor _this, int howMany)

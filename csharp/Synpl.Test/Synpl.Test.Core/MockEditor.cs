@@ -133,6 +133,7 @@ namespace Synpl.Test.Core
         {
             _selectionStart = Math.Min(start, _text.Length);
             _selectionEnd = Math.Min(end, _text.Length);
+            _currentPosition = _selectionEnd;
         }
         
         public int Length 
@@ -159,7 +160,7 @@ namespace Synpl.Test.Core
                 return i;
             }
             int columnCounter = 0;
-            for (; i < _text.Length && columnCounter < column; i++)
+            for (; i < _text.Length && columnCounter < column && _text[i] != '\n'; i++)
             {
                 columnCounter ++;
             }
