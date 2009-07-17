@@ -165,24 +165,104 @@ namespace Synpl.Test.Core
             Assert.AreEqual(16, testColumn);
         }
         
-        // TODO: Complete these unit tests.
-//        [Test]
-//        public void TestInsertText()
-//        {
-//            Assert.Fail();
-//        }
-//
-//        [Test]
-//        public void TestDeleteText()
-//        {
-//            Assert.Fail();
-//        }
-//
-//        [Test]
-//        public void TestGetText()
-//        {
-//            Assert.Fail();
-//        }
+        [Test]
+        public void TestInsertText()
+        {
+            MockEditor med = new MockEditor();
+            bool shouldNotRaiseEvent = true;
+            bool eventFired = false;
+            med.TextChanged += 
+                new EventHandler<TextChangedEventArgs>(delegate(object sender, TextChangedEventArgs e) {
+                    Assert.IsFalse(shouldNotRaiseEvent);
+                    Assert.AreEqual(3, e.Length);
+                    Assert.AreEqual("Kat", e.Text);
+                    Assert.AreEqual(0, e.Start);
+                    Assert.AreEqual(TextChangedEventArgs.OperationType.Insertion,
+                                    e.Operation);
+                    eventFired = true;
+                });
+            med.InsertText(0, "Ana are mere.", true);
+            shouldNotRaiseEvent = false;
+            Assert.IsFalse(eventFired);
+            med.InsertText(0, "Kat", false);
+            Assert.IsTrue(eventFired);
+            Assert.AreEqual("KatAna are mere.", med.GetText(0, med.Length));
+        }
+
+        [Test]
+        public void TestDeleteText()
+        {
+            MockEditor med = new MockEditor();
+            bool shouldNotRaiseEvent = true;
+            bool eventFired = false;
+            med.TextChanged += 
+                new EventHandler<TextChangedEventArgs>(delegate(object sender, TextChangedEventArgs e) {
+                    Assert.IsFalse(shouldNotRaiseEvent);
+                    Assert.AreEqual(4, e.Length);
+                    Assert.AreEqual("are ", e.Text);
+                    Assert.AreEqual(4, e.Start);
+                    Assert.AreEqual(TextChangedEventArgs.OperationType.Deletion,
+                                    e.Operation);
+                    eventFired = true;
+                });
+            med.InsertText(0, "Ana are mere.", true);
+            shouldNotRaiseEvent = false;
+            Assert.IsFalse(eventFired);
+            med.DeleteText(4, 4, false);
+            Assert.IsTrue(eventFired);
+            Assert.AreEqual("Ana mere.", med.GetText(0, med.Length));
+        }
+
+        [Test]
+        public void TestGetText()
+        {
+            MockEditor med = SetupMockEditor("Ana are mere.");
+            Assert.AreEqual("mer", med.GetText(8, 3));
+        }
+        
+        [Test]
+        public void TestMoveToStartOfLine()
+        {
+            MockEditor med = SetupMockEditor("Line 1.\nLine number two.\nThird line.");
+            med.MoveForwardLines(1);
+            med.MoveForwardChars(6);
+            med.MoveToStartOfLine();
+            Assert.AreEqual(8, med.CursorOffset);
+            int testLine, testColumn;
+            med.OffsetToLineColumn(med.CursorOffset, out testLine, out testColumn);
+            Assert.AreEqual(1, testLine);
+            Assert.AreEqual(0, testColumn);
+        }
+
+        [Test]
+        public void TestMoveToEndOfLine()
+        {
+            MockEditor med = SetupMockEditor("Line 1.\nLine number two.\nThird line.");
+            med.MoveForwardLines(1);
+            med.MoveForwardChars(6);
+            med.MoveToEndOfLine();
+            Assert.AreEqual(24, med.CursorOffset);
+            int testLine, testColumn;
+            med.OffsetToLineColumn(med.CursorOffset, out testLine, out testColumn);
+            Assert.AreEqual(1, testLine);
+            Assert.AreEqual(16, testColumn);
+        }
+
+        [Test]
+        public void TestLastColumnOnLine()
+        {
+            MockEditor med = SetupMockEditor("Line 1.\nLine number two.\nThird line.");            
+            Assert.AreEqual(16, med.LastColumnOnLine(1));            
+        }
+
+        [Test]
+        public void TestOffsetStartLine()
+        {
+            MockEditor med = SetupMockEditor("Line 1.\nLine number two.\nThird line.");
+            Assert.AreEqual(8, med.OffsetStartLine(1));
+            Assert.AreEqual(25, med.OffsetStartLine(2));
+        }
+
         #endregion
 
         #region Private Helper Methods
