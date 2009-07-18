@@ -53,9 +53,31 @@ namespace Synpl.ShellGtk
 			ShowAll();
 		}
 
+
+        protected override bool OnKeyPressEvent (Gdk.EventKey e)
+        {
+            // We send the key directly to the shell for handling because
+            // the key will be used by the GtkTextView if it gets through.
+            if (_shell.HandleKey(ToAbstractKey(e)))
+            {
+                return true;
+            }
+            return base.OnKeyPressEvent (e);            
+        }
+
+        
 		#endregion
 
 		#region Private Helper Methods
+
+        private Synpl.EditorAbstraction.Key ToAbstractKey(Gdk.EventKey ek)
+        {
+            string keyCode = ek.Key.ToString();
+            bool hasShift = (ek.State & Gdk.ModifierType.ShiftMask) != 0;
+            bool hasAlt = (ek.State & Gdk.ModifierType.Mod1Mask) != 0;
+            bool hasControl = (ek.State & Gdk.ModifierType.ControlMask) != 0;
+            return new Synpl.EditorAbstraction.Key(keyCode, hasShift, hasControl, hasAlt);
+        }
         
 		private void ConfigureTextView()
 		{

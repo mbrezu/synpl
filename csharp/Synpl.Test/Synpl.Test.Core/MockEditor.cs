@@ -35,11 +35,6 @@ namespace Synpl.Test.Core
         #endregion
 
         #region Public Methods (Simulation of User Interaction)
-        public void SimulateKeyStroke(Synpl.EditorAbstraction.Key keystroke)
-        {
-            OnKeyStroke(new KeyStrokeEventArgs(keystroke));
-        }
-
         public void SimulateStartSelecting()
         {
             _selectionStart = _currentPosition;
@@ -232,15 +227,6 @@ namespace Synpl.Test.Core
             return new List<string>();
         }
         #endregion
-
-        #region Keyboard events
-        public event EventHandler<KeyStrokeEventArgs> KeyStroke;
-        public bool Editable 
-        { 
-            get { return true; }
-            set {} 
-        }
-        #endregion
         
         #endregion
 
@@ -257,14 +243,6 @@ namespace Synpl.Test.Core
             if (TextChanged != null)
             {
                 TextChanged(this, e);
-            }
-        }
-
-        private void OnKeyStroke(KeyStrokeEventArgs e)
-        {
-            if (KeyStroke != null)
-            {
-                KeyStroke(this, e);
             }
         }
 

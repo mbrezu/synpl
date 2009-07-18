@@ -76,7 +76,7 @@ namespace Synpl.Test.Core
             RepeatIt(1, delegate() { med.SimulateMoveDown(false); });
             med.OffsetToLineColumn(med.CursorOffset, out line, out column);
             Assert.AreEqual(2, line);
-            Assert.AreEqual(10, column);            
+            Assert.AreEqual(11, column);
         }
 
         [Test]

@@ -45,10 +45,5 @@ namespace Synpl.EditorAbstraction
 		void RequestFormatting(int start, int end, List<FormattingHint> hints);
 		List<string> KnownFormattingHints();
 		#endregion
-
-        #region Keyboard events
-        event EventHandler<KeyStrokeEventArgs> KeyStroke;
-        bool Editable { get; set; }
-        #endregion
 	}
 }

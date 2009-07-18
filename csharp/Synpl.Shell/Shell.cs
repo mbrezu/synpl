@@ -34,6 +34,7 @@ namespace Synpl.Shell
         private CowList<ParseTree> _selectedTreeStack;
         private Queue<Synpl.EditorAbstraction.Key> _chordBuffer;
         private string _structureModeAction;
+        private bool _inStructureMode;
         #endregion
 
         #region Constructor
@@ -41,15 +42,149 @@ namespace Synpl.Shell
         {
             _editor = editor;
             _editor.TextChanged += HandleTextChanged;
-            _editor.KeyStroke += HandleKeyStroke;
             _text = new TextWithChanges(_editor);
             _selectedTreeStack = new CowList<ParseTree>();
             _chordBuffer = new Queue<Synpl.EditorAbstraction.Key>();
             _structureModeAction = "m";
+            _inStructureMode = false;
         }
         #endregion
 
         #region Public Methods
+        public bool HandleKey(Synpl.EditorAbstraction.Key key)
+        {
+            Console.WriteLine("Shell key handling: {0}", key.ToString());
+            _chordBuffer.Enqueue(key);
+            while (_chordBuffer.Count > 5)
+            {
+                _chordBuffer.Dequeue();
+            }
+            DebugDisplayChordBuffer();
+            if (TypedChord("C-a"))
+            {
+                _editor.MoveToStartOfLine();
+                return true;
+            }
+            else if (TypedChord("Tab"))
+            {
+                Indent();
+                return true;
+            }
+            else if (TypedChord("C-e"))
+            {
+                _editor.MoveToEndOfLine();
+                return true;
+            }
+            else if (TypedChord("C-x C-t") && !InStructureMode())
+            { 
+                EnterStructureMode();
+                return true;
+            }
+            else if (TypedChord("C-g") && InStructureMode())
+            {
+                ExitStructureMode();
+                return true;
+            }
+            else if (TypedChord("C-n"))
+            {
+                _editor.MoveForwardLines(1);
+                return true;
+            }
+            else if (TypedChord("C-p"))
+            {
+                _editor.MoveForwardLines(-1);
+                return true;
+            }
+            else if (TypedChord("C-b"))
+            {
+                _editor.MoveForwardChars(-1);
+                return true;
+            }
+            else if (TypedChord("C-f"))
+            {
+                _editor.MoveForwardChars(1);
+                return true;
+            }
+            if (InStructureMode())
+            {
+                if (TypedChord("q"))
+                {
+                    ExitStructureMode();
+                    return true;
+                }
+                else if (TypedChord("i"))
+                {
+                    Indent();
+                    return true;
+                }
+                else if (TypedChord("p"))
+                {
+                    ExtendToParent();
+                    return true;
+                }
+                else if (TypedChord("l"))
+                {
+                    LastSelection();
+                    return true;
+                }
+                else if (TypedChord("m"))
+                {
+                    _structureModeAction = "m";
+                    return true;
+                }
+                else if (TypedChord("r"))
+                {
+                    _structureModeAction = "r";
+                    return true;
+                }
+                else if (TypedChord("x"))
+                {
+                    _structureModeAction = "x";
+                    return true;
+                }
+                else if (TypedChord("t"))
+                {
+                    _structureModeAction = "t";
+                    return true;
+                }
+                else if (TypedChord("u"))
+                {
+                    switch (_structureModeAction)
+                    {
+                    case "m":
+                        SelectPreviousSibling();
+                        return true;
+                    case "t":
+                        MoveUp();
+                        return true;
+                    }
+                }
+                else if (TypedChord("d"))
+                {
+                    switch (_structureModeAction)
+                    {
+                    case "m":
+                        SelectNextSibling();
+                        return true;
+                    case "t":
+                        MoveDown();
+                        return true;
+                    }
+                }
+                else if (TypedChord("c"))
+                {
+                    SelectFirstChild();
+                    return true;
+                }
+                else if (TypedChord("y"))
+                {
+                    _parseTree = PrettyPrint();
+                    return true;
+                }
+            }
+            return false;
+        }
+        
         public string GetStatus()
         {
             int offset = _editor.CursorOffset;
@@ -267,6 +402,16 @@ namespace Synpl.Shell
         #endregion
 
         #region Private Helper Methods
+        private void DebugDisplayChordBuffer()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var key in _chordBuffer.ToArray())
+            {
+                sb.AppendFormat("{0} ", key.ToString());
+            }
+            Console.WriteLine("chord buffer: {0}", sb.ToString());
+        }
+            
         private void CompleteReparse()
         {
             CowList<Token> tokens = 
@@ -416,17 +561,17 @@ namespace Synpl.Shell
 
         private bool InStructureMode()
         {
-            return !_editor.Editable;
+            return _inStructureMode;
         }
 
         private void EnterStructureMode()
         {
-            _editor.Editable = false;
+            _inStructureMode = true;
         }
 
         private void ExitStructureMode()
         {
-            _editor.Editable = true;
+            _inStructureMode = false;
         }        
 
         private void ValidateSelectionStack()
@@ -469,114 +614,6 @@ namespace Synpl.Shell
             UpdateFormatting();
         }
 
-        // TODO: Add editing modes.
-        // TODO: Write a simple pretty printer for the sexp list.
-        private void HandleKeyStroke(object sender, KeyStrokeEventArgs e)
-        {
-//            Console.WriteLine("Keypress: {0}", e.Key.ToString());
-            _chordBuffer.Enqueue(e.Key);
-            while (_chordBuffer.Count > 5)
-            {
-                _chordBuffer.Dequeue();
-            }
-            StringBuilder sb = new StringBuilder();
-            foreach (var key in _chordBuffer.ToArray())
-            {
-                sb.AppendFormat("{0} ", key.ToString());
-            }
-            Console.WriteLine("chord buffer: {0}", sb.ToString());
-            if (TypedChord("C-x C-t") && !InStructureMode())
-            { 
-                EnterStructureMode();
-            }
-            else if (TypedChord("C-g") && InStructureMode())
-            {
-                ExitStructureMode();
-            }
-            else if (TypedChord("C-n"))
-            {
-                _editor.MoveForwardLines(1);
-            }
-            else if (TypedChord("C-p"))
-            {
-                _editor.MoveForwardLines(-1);
-            }
-            else if (TypedChord("C-b"))
-            {
-                _editor.MoveForwardChars(-1);
-            }
-            else if (TypedChord("C-f"))
-            {
-                _editor.MoveForwardChars(1);
-            }
-            if (InStructureMode())
-            {
-                if (TypedChord("q"))
-                {
-                    ExitStructureMode();
-                }
-                else if (TypedChord("i"))
-                {
-                    Indent();
-                }
-                else if (TypedChord("p"))
-                {
-                    ExtendToParent();
-                }
-                else if (TypedChord("l"))
-                {
-                    LastSelection();
-                }
-                else if (TypedChord("m"))
-                {
-                    _structureModeAction = "m";
-                }
-                else if (TypedChord("r"))
-                {
-                    _structureModeAction = "r";
-                }
-                else if (TypedChord("x"))
-                {
-                    _structureModeAction = "x";
-                }
-                else if (TypedChord("t"))
-                {
-                    _structureModeAction = "t";
-                }
-                else if (TypedChord("u"))
-                {
-                    switch (_structureModeAction)
-                    {
-                    case "m":
-                        SelectPreviousSibling();
-                        break;
-                    case "t":
-                        MoveUp();
-                        break;
-                    }
-                }
-                else if (TypedChord("d"))
-                {
-                    switch (_structureModeAction)
-                    {
-                    case "m":
-                        SelectNextSibling();
-                        break;
-                    case "t":
-                        MoveDown();
-                        break;
-                    }
-                }
-                else if (TypedChord("c"))
-                {
-                    SelectFirstChild();
-                }
-                else if (TypedChord("y"))
-                {
-                    _parseTree = PrettyPrint();
-                }
-            }
-        }
         #endregion
 
     }

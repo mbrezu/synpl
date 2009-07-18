@@ -120,6 +120,18 @@ namespace Synpl.EditorAbstraction
         
         public static int LastColumnOnLine(this IAbstractEditor _this, int line)
         {
+            int lastLine, lastColumn;
+            _this.OffsetToLineColumn(_this.Length, out lastLine, out lastColumn);
+            // This is a hack workaround for a Gtk bug (LineColumnToOffset returns
+            // a bogus result if the line/column are out of range).
+            if (line == lastLine)
+            {
+                return lastColumn;
+            }
+            if (line > lastLine)
+            {
+                throw new ArgumentOutOfRangeException("Line is out of range.");
+            }
             int offset = _this.OffsetStartLine(line + 1) - 1;
             if (offset > _this.Length - 1)
             {

@@ -48,19 +48,7 @@ namespace Synpl.ShellGtk
 		#endregion
 
 		#region Implementation of IAbstractEditor
-
-        public bool Editable
-        {
-            get
-            {
-                return _textView.Editable;
-            }
-            set
-            {
-                _textView.Editable = value;
-            }
-        }
-        
+       
 		public int Length
 		{
 			get 
@@ -181,7 +169,6 @@ namespace Synpl.ShellGtk
 
 		public event EventHandler<TextChangedEventArgs> TextChanged;
 
-        public event EventHandler<KeyStrokeEventArgs> KeyStroke;
 		#endregion
 
 		#region Private Helper Methods
@@ -244,14 +231,6 @@ namespace Synpl.ShellGtk
             }
         }
 
-        private void OnKeyStroke(Synpl.EditorAbstraction.Key keycode)
-        {
-            if (KeyStroke != null)
-            {
-                KeyStroke(this,
-                          new KeyStrokeEventArgs(keycode));
-            }
-        }
 		#endregion
 				
 		#region Form Event Handlers
@@ -268,34 +247,6 @@ namespace Synpl.ShellGtk
 
 		void HandleKeyReleaseEvent(object o, KeyReleaseEventArgs args)
 		{
-            if (args.Event.Key >= Gdk.Key.F1 && args.Event.Key <= Gdk.Key.F10)
-            {
-                OnKeyStroke(new Synpl.EditorAbstraction.Key(args.Event.Key.ToString(), 
-                                                            (args.Event.State & Gdk.ModifierType.ShiftMask) != 0,
-                                                            (args.Event.State & Gdk.ModifierType.ControlMask) != 0, 
-                                                            (args.Event.State & Gdk.ModifierType.Mod1Mask) != 0));
-            }
-            else if (args.Event.Key >= Gdk.Key.a && args.Event.Key <= Gdk.Key.z)
-            {
-                OnKeyStroke(new Synpl.EditorAbstraction.Key(args.Event.Key.ToString().ToLower(), 
-                                                            (args.Event.State & Gdk.ModifierType.ShiftMask) != 0,
-                                                            (args.Event.State & Gdk.ModifierType.ControlMask) != 0, 
-                                                            (args.Event.State & Gdk.ModifierType.Mod1Mask) != 0));
-            }
-            else if (args.Event.Key >= Gdk.Key.A && args.Event.Key <= Gdk.Key.Z)
-            {
-                OnKeyStroke(new Synpl.EditorAbstraction.Key(args.Event.Key.ToString().ToLower(), 
-                                                            (args.Event.State & Gdk.ModifierType.ShiftMask) != 0,
-                                                            (args.Event.State & Gdk.ModifierType.ControlMask) != 0, 
-                                                            (args.Event.State & Gdk.ModifierType.Mod1Mask) != 0));
-            }
-            else if (args.Event.Key >= Gdk.Key.Key_0 && args.Event.Key <= Gdk.Key.Key_9)
-            {
-                OnKeyStroke(new Synpl.EditorAbstraction.Key(args.Event.Key.ToString().Substring(4), 
-                                                            (args.Event.State & Gdk.ModifierType.ShiftMask) != 0,
-                                                            (args.Event.State & Gdk.ModifierType.ControlMask) != 0, 
-                                                            (args.Event.State & Gdk.ModifierType.Mod1Mask) != 0));
-            }
 			if (_waitForDeletionKey) 
             {
 				_waitForDeletionKey = false;
