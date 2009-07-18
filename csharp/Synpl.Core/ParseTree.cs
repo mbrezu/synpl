@@ -392,7 +392,7 @@ namespace Synpl.Core
             nodeAffected.OffsetSuccessorsPositionBy(-1);
             return nodeAffected.ReparseAndValidateRecursively();
         }
-
+        
         public IEnumerable<ParseTree>AllNodes()
         {
             Stack<ParseTree> stack = new Stack<ParseTree>();
