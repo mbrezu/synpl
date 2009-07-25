@@ -73,7 +73,6 @@ namespace Synpl.Shell
             else if (TypedChord("Tab"))
             {
                 Indent();
-                UpdateFormatting();
                 return true;
             }
             else if (TypedChord("C-e"))
@@ -121,7 +120,6 @@ namespace Synpl.Shell
                 else if (TypedChord("i"))
                 {
                     Indent();
-                    UpdateFormatting();
                     return true;
                 }
                 else if (TypedChord("p"))
@@ -186,7 +184,6 @@ namespace Synpl.Shell
                 else if (TypedChord("y"))
                 {
                     _parseTree = PrettyPrint();
-                    UpdateFormatting();
                     return true;
                 }
             }
@@ -365,6 +362,9 @@ namespace Synpl.Shell
             {
                 return;
             }
+            CowList<int> pathToCursor;
+            int cursorOffset;
+            GetEditorPositionAsPath(out pathToCursor, out cursorOffset);
             ParseTree newParseTree = _parseTree.Indent(_editor.CursorOffset, Shell.MaxColumn, _editor);
             // If newParseTree is _parseTree, then the indend didn't do anything
             // and we don't need to cancel the selection and update the stored parse tree.
@@ -376,6 +376,8 @@ namespace Synpl.Shell
                 _parseTree = newParseTree;
                 _selectedTreeStack.Clear();
             }
+            UpdateFormatting();
+            SetEditorPositionFromPath(pathToCursor, cursorOffset);
         }
 
         public void ReplaceText(string newText)
@@ -392,6 +394,7 @@ namespace Synpl.Shell
             {
                 return _parseTree;
             }
+
             CowList<int> path = _selectedTreeStack.Last.GetPath();
             Console.WriteLine("path of pped node: {0}", path.ToString());
             _parseTree = _selectedTreeStack.Last.PrettyPrint(Shell.MaxColumn, _editor);
@@ -405,6 +408,7 @@ namespace Synpl.Shell
             Console.WriteLine(">>> Code tree is:{0}{1}", 
                               Environment.NewLine,
                               _parseTree.ToStringAsTree());            
+            UpdateFormatting();
             return _parseTree;
         }
         #endregion
@@ -613,6 +617,42 @@ namespace Synpl.Shell
                                  _selectedTreeStack.Last.EndPosition);                
         }
 
+        // This function is used to save the current position of the cursor in a
+        // way that's restorable after a pretty print or transform.
+        // It stores the path to the node the cursor is on, along with the offset of the
+        // cursor position relative to the start position of that node.
+        //
+        // Obviously, this works only for transformations that rearrange text, not for transformations
+        // that change the parse tree structure. Transformations of the tree structure must be re-applied
+        // on the <path> vector before calling SetEditorPositionAsPath.
+        public void GetEditorPositionAsPath(out CowList<int> path, out int offset)
+        {
+            path = null;
+            offset = 0;
+            if (_parseTree == null)
+            {
+                return;
+            }            
+            CowList<ParseTree> pathToPosition = _parseTree.GetPathForPosition(_editor.CursorOffset);
+            if (pathToPosition.Count == 0)
+            {
+                return;
+            }
+            ParseTree currentTree = pathToPosition.Last;
+            path = currentTree.GetPath();
+            offset = _editor.CursorOffset - currentTree.StartPosition;
+        }
+
+        // Restores a position saved by GetEditorPositionAsPath
+        public void SetEditorPositionFromPath(CowList<int> path, int offset)
+        {
+            if (path == null || _parseTree == null)
+            {
+                return;
+            }
+            ParseTree currentNode = _parseTree.GetNodeAtPath(path);
+            _editor.CursorOffset = currentNode.StartPosition + offset;
+        }
         #endregion
 
         #region Editor Event Handlers

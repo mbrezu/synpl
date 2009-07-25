@@ -504,12 +504,8 @@ namespace Synpl.Core
         // The unit tests for pretty printing and indenting should check the behaviour in
         // the presence of unparsed text changes.
         //
-        // TODO: if we have unparsed text changes, try to pretty print the subtrees. This
-        // is a 'best-effort' approach, as opposed to just doing nothing if we have 
-        // unparsed text changes.
-        //
         // TODO: Pretty printing should preserve the position of the cursor (relative to the
-        // inner most node.
+        // inner most node.        
         public ParseTree PrettyPrint(int maxColumn, IAbstractEditor editor)
         {
             int line, column;
