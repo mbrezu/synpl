@@ -29,7 +29,6 @@ namespace Synpl.ShellGtk
 {
 	public partial class MainWindow: Gtk.Window
 	{
-        // TODO: Mock editor for testing.
         // TODO: Selection of multiple nodes (to handle extend selection up/down).
         // TODO: Try keyboard accelerators (mode for structured editing).
         // TODO: Pretty printing? :-) This needs some design work.
@@ -83,7 +82,7 @@ namespace Synpl.ShellGtk
 		{
 			FontDescription fontDescription = new FontDescription();
 			fontDescription.Family = "Bitstream Vera Sans Mono";
-			fontDescription.AbsoluteSize = 15000;
+			fontDescription.AbsoluteSize = 12000;
 			txtEditor.ModifyFont(fontDescription);
 		}
 		#endregion

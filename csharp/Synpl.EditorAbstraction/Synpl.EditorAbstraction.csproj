@@ -40,6 +40,7 @@
     <Compile Include="Key.cs" />
     <Compile Include="KeyStrokeEventArgs.cs" />
     <Compile Include="AbstractEditorOperations.cs" />
+    <Compile Include="Pair.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

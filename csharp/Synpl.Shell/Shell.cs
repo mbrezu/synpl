@@ -25,6 +25,9 @@ using Synpl.Parser.Sexp;
 namespace Synpl.Shell
 {
     // TODO: Shell should not depend on SexpParser. Need to find a way to plug in the parser in.
+    // TODO: Write a ConsistencyCheck function that compares the current tree with the one 
+    // resulting from a complete reparse after each operation. (after text changed too).
+    // If there is a failure ConsistencyCheck will dump it to console (expected/actual format).
     public class Shell
     {
 
@@ -161,6 +164,8 @@ namespace Synpl.Shell
                         return true;
                     case "t":
                         MoveUp();
+                        UpdateFormatting();
+                        ConsistencyCheck();
                         return true;
                     }
                 }
@@ -173,6 +178,8 @@ namespace Synpl.Shell
                         return true;
                     case "t":
                         MoveDown();
+                        UpdateFormatting();
+                        ConsistencyCheck();
                         return true;
                     }
                 }
@@ -377,6 +384,7 @@ namespace Synpl.Shell
                 _selectedTreeStack.Clear();
             }
             UpdateFormatting();
+            ConsistencyCheck();
             SetEditorPositionFromPath(pathToCursor, cursorOffset);
         }
 
@@ -409,6 +417,7 @@ namespace Synpl.Shell
                               Environment.NewLine,
                               _parseTree.ToStringAsTree());            
             UpdateFormatting();
+            ConsistencyCheck();
             return _parseTree;
         }
         #endregion
@@ -423,31 +432,52 @@ namespace Synpl.Shell
             }
 //            Console.WriteLine("chord buffer: {0}", sb.ToString());
         }
-            
-        private void CompleteReparse()
+
+        private ParseTree ReparseAll(bool useOldText)
         {
-            CowList<Token> tokens = 
-                SexpParser.GetInstance(SexpParser.ParseType.Global).
+            CowList<Token> tokens = null;
+            if (!useOldText)
+            {
+                tokens = SexpParser.GetInstance(SexpParser.ParseType.Global).
                     TokenizerFunc(_text.GetCurrentSlice(0,
                                                         _text.GetActualLength()));
+            }
+            else
+            {
+                tokens = SexpParser.GetInstance(SexpParser.ParseType.Global).
+                    TokenizerFunc(_text.GetOldSlice(0,
+                                                        _text.GetActualLength()));
+            }
 //            Console.WriteLine(">>> tokens: {0}", tokens);
             CowList<Token> remainingTokens = null;
+            ParseTree parseTree;
             try 
             {
                 SexpParser.GetInstance(SexpParser.ParseType.Global).
                     ParserFunc(tokens,
                                _text,
-                               out _parseTree,
+                               out parseTree,
                                out remainingTokens);
             }
             catch (ParseException ex)
             {
                 Console.WriteLine("Error while parsing: {0}.", ex.Message);
-                return;
+                return null;
             }
             if (remainingTokens != null && remainingTokens.Count > 0)
             {
 //                Console.WriteLine("Tokens left in the stream, incomplete parse.");
+                return null;
+            }
+            return parseTree;
+        }
+            
+        private void CompleteReparse()
+        {
+            _parseTree = ReparseAll(false);
+            if (_parseTree == null)
+            {
+                return;
             }
             // HACK: Maybe validate slice should be called by the parser?
             _text.ValidateSlice(_parseTree.StartPosition, _parseTree.EndPosition);
@@ -625,7 +655,7 @@ namespace Synpl.Shell
         // Obviously, this works only for transformations that rearrange text, not for transformations
         // that change the parse tree structure. Transformations of the tree structure must be re-applied
         // on the <path> vector before calling SetEditorPositionAsPath.
-        public void GetEditorPositionAsPath(out CowList<int> path, out int offset)
+        private void GetEditorPositionAsPath(out CowList<int> path, out int offset)
         {
             path = null;
             offset = 0;
@@ -644,14 +674,47 @@ namespace Synpl.Shell
         }
 
         // Restores a position saved by GetEditorPositionAsPath
-        public void SetEditorPositionFromPath(CowList<int> path, int offset)
+        private void SetEditorPositionFromPath(CowList<int> path, int offset)
         {
             if (path == null || _parseTree == null)
             {
                 return;
             }
             ParseTree currentNode = _parseTree.GetNodeAtPath(path);
-            _editor.CursorOffset = currentNode.StartPosition + offset;
+            if (currentNode != null)
+            {
+                _editor.CursorOffset = currentNode.StartPosition + offset;
+            }
+        }
+
+        private void ConsistencyCheck()
+        {
+            ParseTree completeReparse = ReparseAll(true);
+            if (completeReparse == null && _parseTree != null)
+            {
+                Console.WriteLine(">>> Consistency check: complete reparse is null, _parseTree isn't null.");
+                throw new InvalidOperationException("Synpl Consistency Check.");
+            }
+            if (completeReparse != null && _parseTree == null)
+            {
+                Console.WriteLine(">>> Consistency check: complete reparse isn't null, _parseTree is null.");
+                throw new InvalidOperationException("Synpl Consistency Check.");
+            }
+            if (completeReparse == null || _parseTree == null)
+            {
+                return;
+            }
+            string crTree = completeReparse.ToStringAsTree();
+            string ptTree = _parseTree.ToStringAsTree();
+            if (crTree != ptTree)
+            {
+                Console.WriteLine(">>> Consistency check: different trees:");
+                Console.WriteLine(">>> Expected (complete reparse):");
+                Console.WriteLine(crTree);
+                Console.WriteLine(">>> Actual (current tree):");
+                Console.WriteLine(ptTree);
+                throw new InvalidOperationException("Synpl Consistency Check.");
+            }
         }
         #endregion
 
@@ -660,8 +723,9 @@ namespace Synpl.Shell
         {
             TryParsing(e);
             UpdateFormatting();
+            ConsistencyCheck();
         }
-
+        
         #endregion
 
     }

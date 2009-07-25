@@ -164,7 +164,7 @@ namespace Synpl.Core
             {
                 return _subTrees[head].GetNodeAtPath(path.Tail);
             }
-            throw new ArgumentException("Invalid path.");
+            return null;
         }
 
         public bool Contains(int position)
@@ -566,10 +566,16 @@ namespace Synpl.Core
             {
                 return GetRoot();
             }
-            ParseTree reparsedNode = TryReparse(false);
+            // We don't care about unparsed changes in the children, they will get fixed
+            // when the children are edited (and reparsed).
+            ParseTree reparsedNode = TryReparse(RepresentAsCodeNewWithOldChildren());
             if (reparsedNode != null)
             {
-                reparsedNode._text.ValidateSlice(StartPosition, EndPosition);
+                CowList<Pair<int, int>> ownSlices = GetOwnSlices();
+                foreach(Pair<int, int> slice in ownSlices)
+                {
+                    reparsedNode._text.ValidateSlice(slice.First, slice.Second);
+                }
                 return reparsedNode;
             }
             else
@@ -597,12 +603,12 @@ namespace Synpl.Core
             return ReparseAndValidateRecursivelyImpl(2);
         }
 
-        private ParseTree TryReparse(bool useOldVersion)
+        private ParseTree TryReparse(CowList<CharWithPosition> code)
         {
             ParseTree result = null;
             try
             {
-                result = Reparse(useOldVersion);
+                result = Reparse(code);
             }
             catch (ParseException)
             {
@@ -611,9 +617,75 @@ namespace Synpl.Core
             return result;
         }
 
-        private ParseTree Reparse(bool useOldVersion)
+        private ParseTree TryReparse(bool useOldVersion)
         {
             CowList<CharWithPosition> code = RepresentAsCode(useOldVersion);
+            return TryReparse(code);
+        }
+
+        // TODO: Add unit tests.
+        private CowList<Pair<int, int>> GetOwnSlices()
+        {
+            CowList<Pair<int, int>> result = new CowList<Pair<int, int>>();
+            int childIndex = 0; 
+            int interChildStart = 0;
+            while (interChildStart < EndPosition)
+            {
+                int interChildEnd;
+                if (childIndex < SubTrees.Count)
+                {
+                    interChildEnd = SubTrees[childIndex].StartPosition;
+                }
+                else
+                {
+                    interChildEnd = EndPosition;
+                }
+                result.Add(new Pair<int, int>(interChildStart, interChildEnd));
+                if (childIndex < SubTrees.Count)
+                {
+                    interChildStart = SubTrees[childIndex].EndPosition;
+                    childIndex ++;
+                }
+                else
+                {
+                    interChildStart = interChildEnd;
+                }
+            }
+            return result;
+        }
+
+        // TODO: Add unit tests.
+        private CowList<CharWithPosition> RepresentAsCodeNewWithOldChildren()
+        {
+            CowList<CharWithPosition> result = new CowList<CharWithPosition>();
+            CowList<Pair<int, int>> ownSlices = GetOwnSlices();
+            int childIndex = 0;
+            foreach (Pair<int, int> slice in ownSlices)
+            {
+                bool sliceIsEmpty = slice.First == slice.Second;
+                if (!sliceIsEmpty)
+                {
+                    result.AddRange(_text.GetCurrentSlice(slice.First, 
+                                                          slice.Second));
+                }
+                if (childIndex < SubTrees.Count)
+                {
+                    // If the node is empty we must actually use the new code, i.e. not
+                    // include the node at all.
+                    bool subTreeIsEmpty = 
+                        SubTrees[childIndex].StartPosition == SubTrees[childIndex].EndPosition;
+                    if (!subTreeIsEmpty)
+                    {
+                        result.AddRange(SubTrees[childIndex].RepresentAsCode(true));
+                    }
+                    childIndex ++;
+                }
+            }
+            return result;
+        }
+
+        private ParseTree Reparse(CowList<CharWithPosition> code)
+        {
             CowList<Token> tokens = _parser.TokenizerFunc(code);
             ParseTree reparsedSelf;
             CowList<Token> tokensRest;
@@ -631,6 +703,12 @@ namespace Synpl.Core
             }
             reparsedSelf.AdjustCoordinates(this);
             return reparsedSelf.GetRoot();
+        }
+
+        private ParseTree Reparse(bool useOldVersion)
+        {
+            CowList<CharWithPosition> code = RepresentAsCode(useOldVersion);
+            return Reparse(code);
         }
 
         private void AdjustCoordinates(ParseTree oldNode)
