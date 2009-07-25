@@ -58,6 +58,11 @@ namespace Synpl.Core
         {
             return _position >= start && _position < end;
         }
+
+        public override string ToString ()
+        {
+            return string.Format("[TextChange: IsDeletion={0}, Position={1}]", IsDeletion, Position);
+        }
         #endregion
 
         #region IComparable Implementation

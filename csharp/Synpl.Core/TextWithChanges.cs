@@ -80,6 +80,29 @@ namespace Synpl.Core
             return new ReadOnlyCollection<TextChange>(_changes);
         }
 
+        // TODO: Add unit test.
+        public CowList<int> GetChangesActualPositionsBetween(int start, int end)
+        {
+            CowList<int> result = new CowList<int>();
+            int offset = 0;
+            foreach (TextChange tc in _changes)
+            {
+                if (tc.IsDeletion)
+                {
+                    offset --;
+                }
+                if (tc.Position + offset > end)
+                {
+                    break;
+                }
+                if (tc.Position + offset >= start)
+                {
+                    result.Add(tc.Position + offset);
+                }
+            }
+            return result;
+        }
+
         public int ConvertOldPositionToActual(int oldPosition)
         {
             int result = oldPosition;

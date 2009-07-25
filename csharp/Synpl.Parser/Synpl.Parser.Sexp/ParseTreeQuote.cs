@@ -51,9 +51,16 @@ namespace Synpl.Parser.Sexp
         #endregion
 
         #region Pretty Printing
-        public override string ToStringAsPrettyPrint(int indentLevel, int maxColumn)
+        public override TextWithChanges ToTwcSliceAsPrettyPrint(int indentLevel, int maxColumn)
         {
-            return String.Format("'{0}", SubTrees[0].ToStringAsPrettyPrint(indentLevel + 1, maxColumn));
+            if (HasUnparsedChanges())
+            {
+                return base.ToTwcSliceAsPrettyPrint(indentLevel, maxColumn);
+            }
+            TwcBuilder result = new TwcBuilder();
+            result.AddText("'");
+            result.AddTwc(SubTrees[0].ToTwcSliceAsPrettyPrint(indentLevel + 1, maxColumn));
+            return result.ToTwc();
         }
         #endregion
     }

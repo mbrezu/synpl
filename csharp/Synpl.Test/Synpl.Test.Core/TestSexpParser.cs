@@ -43,7 +43,27 @@ namespace Synpl.Test.Core
             expectedTokens.Add(new Token((int)SexpParser.TokenTypes.CloseParen, ")", 6, 7));
             
             Assert.AreEqual(expectedTokens, tokens);
-        }        
+        }
+
+        [Test]
+        public void TestTokenizerOldVersionExtraChars()
+        {
+            Synpl.Core.Parser parser = SexpParser.GetInstance();
+            TwcBuilder twcb = new TwcBuilder();
+            twcb.AddText("(some oth");
+            twcb.AppendCharAsChange('(');
+            twcb.AddText("er)");
+            CowList<CharWithPosition> text = twcb.ToTwc().GetOldSlice(0, twcb.ToTwc().GetActualLength());
+            CowList<Token> tokens = parser.TokenizerFunc(text);
+            CowList<Token> expectedTokens = new CowList<Token>();
+            
+            expectedTokens.Add(new Token((int)SexpParser.TokenTypes.OpenParen, "(", 0, 1));
+            expectedTokens.Add(new Token((int)SexpParser.TokenTypes.Atom, "some", 1, 5));
+            expectedTokens.Add(new Token((int)SexpParser.TokenTypes.Atom, "other", 6, 12));
+            expectedTokens.Add(new Token((int)SexpParser.TokenTypes.CloseParen, ")", 12, 13));
+            
+            Assert.AreEqual(expectedTokens, tokens);
+        }
 
         [Test]
         public void TestParserBasic()

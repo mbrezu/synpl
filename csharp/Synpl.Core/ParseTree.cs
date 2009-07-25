@@ -476,7 +476,27 @@ namespace Synpl.Core
 
         public bool HasUnparsedChanges()
         {
-            return ToStringAsCode(true) != ToStringAsCode(false);
+            CowList<int> changesPos = _text.GetChangesActualPositionsBetween(StartPosition,
+                                                                             EndPosition);
+            int posIndex = 0;
+            foreach (ParseTree pt in _subTrees)
+            {
+                if (posIndex == changesPos.Count)
+                {
+                    return false;
+                }
+                if (changesPos[posIndex] < pt.StartPosition)
+                {
+                    return true;
+                }
+                while (posIndex < changesPos.Count
+                       && changesPos[posIndex] >= pt.StartPosition 
+                       && changesPos[posIndex] < pt.EndPosition)
+                {
+                    posIndex ++;
+                }
+            }
+            return posIndex != changesPos.Count;
         }
 
         // TODO: Add unit test.
@@ -492,34 +512,33 @@ namespace Synpl.Core
         // inner most node.
         public ParseTree PrettyPrint(int maxColumn, IAbstractEditor editor)
         {
-            if (HasUnparsedChanges())
-            {
-                return GetRoot();
-            }
             int line, column;
             editor.OffsetToLineColumn(StartPosition, out line, out column);
-            string prettyPrint = ToStringAsPrettyPrint(column, maxColumn);
-            int length = EndPosition - StartPosition;
-            for (int i = 0; i < length; i++)
-            {
-                DeleteCharAt(StartPosition);
-            }
-            Console.WriteLine("pp: {0}", prettyPrint);
-            for (int i = 0; i < prettyPrint.Length; i++)
-            {
-                InsertCharAt(prettyPrint[i], StartPosition + i);
-            }
-            return ReparseAndValidateRecursively();
+            TextWithChanges prettyPrintTwc = ToTwcSliceAsPrettyPrint(column, maxColumn);
+            _text.RemoveSliceWithChanges(StartPosition, EndPosition, true);
+            Console.WriteLine("pp: {0}", prettyPrintTwc.TestRender());
+            Console.WriteLine("tb: {0}", _text.TestRender());
+            _text.InsertSliceWithChanges(StartPosition, prettyPrintTwc, true);
+            Console.WriteLine("ta: {0}", _text.TestRender());
+            ParseTree result = Reparse(true);
+            Console.WriteLine(result.ToStringAsTree());
+            return result;
         }
 
         // TODO: Add unit test.
-        public virtual string ToStringAsPrettyPrint(int indentLevel, int maxColumn)
+        public virtual TextWithChanges ToTwcSliceAsPrettyPrint(int column, int maxColumn)
         {
-            return ToStringAsCode(false);
+//            TextWithChanges result = _text.GetSliceWithChanges(StartPosition, EndPosition);
+//            if (result.GetCurrentSlice(0, 2)[0].Char == 'o')
+//            {
+//                Console.WriteLine("begin {0} end {1}", StartPosition, EndPosition);
+//                Console.WriteLine("pp other: {0}", result.TestRender());
+//            }
+            return _text.GetSliceWithChanges(StartPosition, EndPosition);
         }
 
         // TODO: Add unit test.
-        public virtual ParseTree Indent(int position, IAbstractEditor editor)
+        public virtual ParseTree Indent(int position, int maxColumn, IAbstractEditor editor)
         {
             int currentLine, currentColumn;
             editor.OffsetToLineColumn(position, out currentLine, out currentColumn);
@@ -534,59 +553,12 @@ namespace Synpl.Core
             editor.OffsetToLineColumn(lineStartOffset, out testLine, out testColumn);
             Console.WriteLine("line start:{0}", lineStartOffset);
             ParseTree lineStarter = GetFirstNodeAfter(lineStartOffset);
-            if (lineStarter == null)
+            if (lineStarter == null || lineStarter.Parent == null)
             {
                 return GetRoot();
             }
-            ParseTree lastSibling = lineStarter.GetLastSiblingBefore(lineStartOffset);
-            int desiredIndentColumn;
-            if (lastSibling != null)
-            {
-                int indentLine, indentOffset;
-                Console.WriteLine("indent by sibling");
-                indentOffset = lastSibling.StartPosition;
-                editor.OffsetToLineColumn(indentOffset, out indentLine, out desiredIndentColumn);
-            }
-            else if (lineStarter.Parent != null)
-            {
-                Console.WriteLine("indent by parent");
-                int indentLine, indentOffset;
-                indentOffset = lineStarter.Parent.StartPosition;
-                editor.OffsetToLineColumn(indentOffset, out indentLine, out desiredIndentColumn);
-                desiredIndentColumn += 2;
-            }
-            else
-            {
-                return GetRoot();
-            }
-            Console.WriteLine("desired column: {0}", desiredIndentColumn);
-            int lineStarterLine, lineStarterColumn;
-            editor.OffsetToLineColumn(lineStarter.StartPosition, 
-                                       out lineStarterLine,
-                                       out lineStarterColumn);
-            Console.WriteLine("found: {0} {1} {2}", 
-                              lineStarter.StartPosition, 
-                              lineStarterLine, 
-                              lineStarterColumn);
-            if (lineStarterColumn < desiredIndentColumn)                
-            {
-                Console.WriteLine("adding {0}", lineStartOffset);
-                for (int i = 0; i < desiredIndentColumn - lineStarterColumn; i++)
-                {
-                    InsertCharAt(' ', lineStartOffset);
-                }
-                return ReparseAndValidateRecursively();
-            }
-            else if (lineStarterColumn > desiredIndentColumn)
-            {
-                Console.WriteLine("deleting");
-                for (int i = 0; i <  lineStarterColumn - desiredIndentColumn; i++)
-                {
-                    DeleteCharAt(lineStartOffset);
-                }
-                return ReparseAndValidateRecursively();
-            }
-            return GetRoot();
+            // FIXME: the maximum column should not be hardcoded.
+            return lineStarter.Parent.PrettyPrint(maxColumn, editor);
         }
         #endregion
 
@@ -720,6 +692,7 @@ namespace Synpl.Core
             }
             return sb.ToString();                
         }
+
         #endregion
     }
 }

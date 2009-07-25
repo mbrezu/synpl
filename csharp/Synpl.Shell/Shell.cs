@@ -27,6 +27,11 @@ namespace Synpl.Shell
     // TODO: Shell should not depend on SexpParser. Need to find a way to plug in the parser in.
     public class Shell
     {
+
+        #region Constants
+        readonly private static int MaxColumn = 40;
+        #endregion
+        
         #region Private Storage
         private IAbstractEditor _editor;
         private TextWithChanges _text;
@@ -53,7 +58,7 @@ namespace Synpl.Shell
         #region Public Methods
         public bool HandleKey(Synpl.EditorAbstraction.Key key)
         {
-            Console.WriteLine("Shell key handling: {0}", key.ToString());
+//            Console.WriteLine("Shell key handling: {0}", key.ToString());
             _chordBuffer.Enqueue(key);
             while (_chordBuffer.Count > 5)
             {
@@ -68,6 +73,7 @@ namespace Synpl.Shell
             else if (TypedChord("Tab"))
             {
                 Indent();
+                UpdateFormatting();
                 return true;
             }
             else if (TypedChord("C-e"))
@@ -115,6 +121,7 @@ namespace Synpl.Shell
                 else if (TypedChord("i"))
                 {
                     Indent();
+                    UpdateFormatting();
                     return true;
                 }
                 else if (TypedChord("p"))
@@ -179,6 +186,7 @@ namespace Synpl.Shell
                 else if (TypedChord("y"))
                 {
                     _parseTree = PrettyPrint();
+                    UpdateFormatting();
                     return true;
                 }
             }
@@ -217,8 +225,8 @@ namespace Synpl.Shell
             int chordIdx = chord.Count - 1;
             while (chordIdx >= 0)
             {
-                Console.WriteLine("{0} ?= {1}", chord[chordIdx], queue[queueIdx]);
-                Console.WriteLine(chord[chordIdx].ToString() != queue[queueIdx].ToString());
+//                Console.WriteLine("{0} ?= {1}", chord[chordIdx], queue[queueIdx]);
+//                Console.WriteLine(chord[chordIdx].ToString() != queue[queueIdx].ToString());
                 if (chord[chordIdx].ToString() != queue[queueIdx].ToString())
                 {
                     return false;
@@ -357,7 +365,7 @@ namespace Synpl.Shell
             {
                 return;
             }
-            ParseTree newParseTree = _parseTree.Indent(_editor.CursorOffset, _editor);
+            ParseTree newParseTree = _parseTree.Indent(_editor.CursorOffset, Shell.MaxColumn, _editor);
             // If newParseTree is _parseTree, then the indend didn't do anything
             // and we don't need to cancel the selection and update the stored parse tree.
             if (newParseTree != _parseTree)
@@ -386,7 +394,7 @@ namespace Synpl.Shell
             }
             CowList<int> path = _selectedTreeStack.Last.GetPath();
             Console.WriteLine("path of pped node: {0}", path.ToString());
-            _parseTree = _selectedTreeStack.Last.PrettyPrint(40, _editor);
+            _parseTree = _selectedTreeStack.Last.PrettyPrint(Shell.MaxColumn, _editor);
             _selectedTreeStack.Clear();
             ParseTree previouslySelected = _parseTree.GetNodeAtPath(path);
             if (previouslySelected != null)
@@ -409,7 +417,7 @@ namespace Synpl.Shell
             {
                 sb.AppendFormat("{0} ", key.ToString());
             }
-            Console.WriteLine("chord buffer: {0}", sb.ToString());
+//            Console.WriteLine("chord buffer: {0}", sb.ToString());
         }
             
         private void CompleteReparse()
@@ -516,7 +524,7 @@ namespace Synpl.Shell
                                                              change.Position + 1, 
                                                              "addedText");
                     hints.Add(hint);
-//                    Console.WriteLine(hint);
+                    Console.WriteLine(hint);
                 }
                 else
                 {
@@ -553,7 +561,7 @@ namespace Synpl.Shell
                 FormattingHint hint = new FormattingHint(pt.StartPosition,
                                                          pt.EndPosition,
                                                          "brokenByDelete");
-//                Console.WriteLine(hint);
+                Console.WriteLine(hint);
                 hints.Add(hint);
             }
             _editor.RequestFormatting(0, _editor.Length, hints);

@@ -216,8 +216,8 @@ namespace Synpl.Parser.Sexp
                            && text[pos].Char != '\'')
                     {
                         sb.Append(text[pos].Char);
+                        endPos = text[pos].Position + 1;
                         pos ++;
-                        endPos ++;
                     }
                     result.Add(new Token((int)TokenTypes.Atom, sb.ToString(), startPos, endPos));
                 }
