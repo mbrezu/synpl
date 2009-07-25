@@ -1,4 +1,4 @@
-// Synpl - a "structured editor" plugin for Gedit.
+// Synpl - a "structured editor".
 // Copyright (C) 2009  Miron Brezuleanu <mbrezu@gmail.com>
  
 // This program is free software; you can redistribute it and/or modify

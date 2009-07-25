@@ -1,7 +1,7 @@
 
-This is supposed to become a structured LISP editor plugin for
-Gedit. If it is reasonably successful, I will try to add support for
-other languages and port it to other editors.
+This is supposed to become a structured LISP editor.
+If it is reasonably successful, I will try to add support for
+other languages.
 
 The code is licensed under GPLv2. The full text of the license is
 found in the file COPYING.
