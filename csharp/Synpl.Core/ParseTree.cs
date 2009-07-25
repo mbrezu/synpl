@@ -560,27 +560,41 @@ namespace Synpl.Core
 
         #region Private Helper Methods
 
-        private ParseTree ReparseAndValidateRecursively()
+        private ParseTree ReparseAndValidateRecursivelyImpl(int level)
         {
+            if (level == 0)
+            {
+                return GetRoot();
+            }
             ParseTree reparsedNode = TryReparse(false);
             if (reparsedNode != null)
             {
-                reparsedNode.AdjustCoordinates(this);
-                reparsedNode._text.ValidateSlice(reparsedNode._startPosition,
-                                                 reparsedNode._endPosition);
-                return reparsedNode.GetRoot();
+                reparsedNode._text.ValidateSlice(StartPosition, EndPosition);
+                return reparsedNode;
             }
             else
             {
                 if (_parent != null)
                 {
-                    return _parent.ReparseAndValidateRecursively();
+                    if (_parent.HasUnparsedChanges())
+                    {
+                        return _parent.ReparseAndValidateRecursivelyImpl(level);
+                    }
+                    else
+                    {
+                        return _parent.ReparseAndValidateRecursivelyImpl(level - 1);
+                    }
                 }
                 else
                 {
                     return GetRoot();
                 }
             }
+        }
+
+        private ParseTree ReparseAndValidateRecursively()
+        {
+            return ReparseAndValidateRecursivelyImpl(2);
         }
 
         private ParseTree TryReparse(bool useOldVersion)
