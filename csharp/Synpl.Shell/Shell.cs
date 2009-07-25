@@ -546,6 +546,7 @@ namespace Synpl.Shell
         // TODO: Optimization: shouldn't recolor all text when the text changes.
         private void UpdateFormatting()
         {
+            Console.WriteLine(">>> Update Formatting:");
             IList<TextChange> changes = _text.Changes;
             List<FormattingHint> hints = new List<FormattingHint>();
             List<int> deletePositions = new List<int>();
@@ -554,8 +555,10 @@ namespace Synpl.Shell
             {
                 if (!change.IsDeletion)
                 {
-                    FormattingHint hint = new FormattingHint(change.Position, 
-                                                             change.Position + 1, 
+                    int actualPosition = 
+                        _text.ConvertOldPositionToActual(change.Position);
+                    FormattingHint hint = new FormattingHint(actualPosition,
+                                                             actualPosition + 1,
                                                              "addedText");
                     hints.Add(hint);
                     Console.WriteLine(hint);
@@ -689,32 +692,32 @@ namespace Synpl.Shell
 
         private void ConsistencyCheck()
         {
-            ParseTree completeReparse = ReparseAll(true);
-            if (completeReparse == null && _parseTree != null)
-            {
-                Console.WriteLine(">>> Consistency check: complete reparse is null, _parseTree isn't null.");
-                throw new InvalidOperationException("Synpl Consistency Check.");
-            }
-            if (completeReparse != null && _parseTree == null)
-            {
-                Console.WriteLine(">>> Consistency check: complete reparse isn't null, _parseTree is null.");
-                throw new InvalidOperationException("Synpl Consistency Check.");
-            }
-            if (completeReparse == null || _parseTree == null)
-            {
-                return;
-            }
-            string crTree = completeReparse.ToStringAsTree();
-            string ptTree = _parseTree.ToStringAsTree();
-            if (crTree != ptTree)
-            {
-                Console.WriteLine(">>> Consistency check: different trees:");
-                Console.WriteLine(">>> Expected (complete reparse):");
-                Console.WriteLine(crTree);
-                Console.WriteLine(">>> Actual (current tree):");
-                Console.WriteLine(ptTree);
-                throw new InvalidOperationException("Synpl Consistency Check.");
-            }
+//            ParseTree completeReparse = ReparseAll(true);
+//            if (completeReparse == null && _parseTree != null)
+//            {
+//                Console.WriteLine(">>> Consistency check: complete reparse is null, _parseTree isn't null.");
+//                throw new InvalidOperationException("Synpl Consistency Check.");
+//            }
+//            if (completeReparse != null && _parseTree == null)
+//            {
+//                Console.WriteLine(">>> Consistency check: complete reparse isn't null, _parseTree is null.");
+//                throw new InvalidOperationException("Synpl Consistency Check.");
+//            }
+//            if (completeReparse == null || _parseTree == null)
+//            {
+//                return;
+//            }
+//            string crTree = completeReparse.ToStringAsTree();
+//            string ptTree = _parseTree.ToStringAsTree();
+//            if (crTree != ptTree)
+//            {
+//                Console.WriteLine(">>> Consistency check: different trees:");
+//                Console.WriteLine(">>> Expected (complete reparse):");
+//                Console.WriteLine(crTree);
+//                Console.WriteLine(">>> Actual (current tree):");
+//                Console.WriteLine(ptTree);
+//                throw new InvalidOperationException("Synpl Consistency Check.");
+//            }
         }
         #endregion
 

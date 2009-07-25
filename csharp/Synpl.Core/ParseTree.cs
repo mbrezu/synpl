@@ -516,6 +516,9 @@ namespace Synpl.Core
             Console.WriteLine("tb: {0}", _text.TestRender());
             _text.InsertSliceWithChanges(StartPosition, prettyPrintTwc, true);
             Console.WriteLine("ta: {0}", _text.TestRender());
+            Console.WriteLine("{0}", ToStringAsCode(true));
+            int offset = prettyPrintTwc.GetActualLength() - (EndPosition - StartPosition);
+            _endPosition += offset;
             ParseTree result = Reparse(true);
             Console.WriteLine(result.ToStringAsTree());
             return result;
@@ -560,47 +563,26 @@ namespace Synpl.Core
 
         #region Private Helper Methods
 
-        private ParseTree ReparseAndValidateRecursivelyImpl(int level)
+
+        private ParseTree ReparseAndValidateRecursively()
         {
-            if (level == 0)
-            {
-                return GetRoot();
-            }
-            // We don't care about unparsed changes in the children, they will get fixed
-            // when the children are edited (and reparsed).
-            ParseTree reparsedNode = TryReparse(RepresentAsCodeNewWithOldChildren());
+            ParseTree reparsedNode = TryReparse(false);
             if (reparsedNode != null)
             {
-                CowList<Pair<int, int>> ownSlices = GetOwnSlices();
-                foreach(Pair<int, int> slice in ownSlices)
-                {
-                    reparsedNode._text.ValidateSlice(slice.First, slice.Second);
-                }
+                reparsedNode._text.ValidateSlice(StartPosition, EndPosition);
                 return reparsedNode;
             }
             else
             {
                 if (_parent != null)
                 {
-                    if (_parent.HasUnparsedChanges())
-                    {
-                        return _parent.ReparseAndValidateRecursivelyImpl(level);
-                    }
-                    else
-                    {
-                        return _parent.ReparseAndValidateRecursivelyImpl(level - 1);
-                    }
+                    return _parent.ReparseAndValidateRecursively();
                 }
                 else
                 {
                     return GetRoot();
                 }
             }
-        }
-
-        private ParseTree ReparseAndValidateRecursively()
-        {
-            return ReparseAndValidateRecursivelyImpl(2);
         }
 
         private ParseTree TryReparse(CowList<CharWithPosition> code)
@@ -621,67 +603,6 @@ namespace Synpl.Core
         {
             CowList<CharWithPosition> code = RepresentAsCode(useOldVersion);
             return TryReparse(code);
-        }
-
-        // TODO: Add unit tests.
-        private CowList<Pair<int, int>> GetOwnSlices()
-        {
-            CowList<Pair<int, int>> result = new CowList<Pair<int, int>>();
-            int childIndex = 0; 
-            int interChildStart = 0;
-            while (interChildStart < EndPosition)
-            {
-                int interChildEnd;
-                if (childIndex < SubTrees.Count)
-                {
-                    interChildEnd = SubTrees[childIndex].StartPosition;
-                }
-                else
-                {
-                    interChildEnd = EndPosition;
-                }
-                result.Add(new Pair<int, int>(interChildStart, interChildEnd));
-                if (childIndex < SubTrees.Count)
-                {
-                    interChildStart = SubTrees[childIndex].EndPosition;
-                    childIndex ++;
-                }
-                else
-                {
-                    interChildStart = interChildEnd;
-                }
-            }
-            return result;
-        }
-
-        // TODO: Add unit tests.
-        private CowList<CharWithPosition> RepresentAsCodeNewWithOldChildren()
-        {
-            CowList<CharWithPosition> result = new CowList<CharWithPosition>();
-            CowList<Pair<int, int>> ownSlices = GetOwnSlices();
-            int childIndex = 0;
-            foreach (Pair<int, int> slice in ownSlices)
-            {
-                bool sliceIsEmpty = slice.First == slice.Second;
-                if (!sliceIsEmpty)
-                {
-                    result.AddRange(_text.GetCurrentSlice(slice.First, 
-                                                          slice.Second));
-                }
-                if (childIndex < SubTrees.Count)
-                {
-                    // If the node is empty we must actually use the new code, i.e. not
-                    // include the node at all.
-                    bool subTreeIsEmpty = 
-                        SubTrees[childIndex].StartPosition == SubTrees[childIndex].EndPosition;
-                    if (!subTreeIsEmpty)
-                    {
-                        result.AddRange(SubTrees[childIndex].RepresentAsCode(true));
-                    }
-                    childIndex ++;
-                }
-            }
-            return result;
         }
 
         private ParseTree Reparse(CowList<CharWithPosition> code)
